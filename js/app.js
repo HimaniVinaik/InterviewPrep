@@ -94,10 +94,32 @@
     });
     return { id, intro, problems };
   }
+  // Companion file <pattern>.more.md: "## <slug>" blocks with "### Approach N: Name" and "### Walkthrough" sections
+  function mergeMore(pat, text) {
+    const bySlug = {};
+    pat.problems.forEach(p => { bySlug[p.slug] = p; p.approaches = []; p.walkthrough = ''; });
+    text.replace(/\r\n?/g, '\n').split(/\n(?=## )/).forEach(chunk => {
+      if (!chunk.startsWith('## ')) return;
+      const nl = chunk.indexOf('\n');
+      const p = bySlug[chunk.slice(3, nl < 0 ? undefined : nl).trim()];
+      if (!p || nl < 0) return;
+      chunk.slice(nl + 1).split(/\n(?=### )/).forEach(sec => {
+        if (!sec.startsWith('### ')) return;
+        const e = sec.indexOf('\n');
+        const name = sec.slice(4, e < 0 ? undefined : e).trim();
+        const body = e < 0 ? '' : sec.slice(e + 1).trim();
+        if (/^approach/i.test(name)) p.approaches.push({ name: name.replace(/^approach\s*\d*\s*[:.-]?\s*/i, ''), body });
+        else if (/^walkthrough/i.test(name)) p.walkthrough = body;
+      });
+    });
+    return pat;
+  }
   function loadProblems() {
     if (!problemsPromise) {
       problemsPromise = Promise.all(PATTERN_IDS.map(id =>
-        fetchText('content/problems/' + id + '.md').then(t => parsePattern(id, t)).catch(e => ({ id, intro: '⚠️ ' + e.message, problems: [] }))
+        fetchText('content/problems/' + id + '.md').then(t => parsePattern(id, t))
+          .then(pat => fetchText('content/problems/' + id + '.more.md').then(t => mergeMore(pat, t), () => pat))
+          .catch(e => ({ id, intro: '⚠️ ' + e.message, problems: [] }))
       )).then(list => { const o = {}; list.forEach(p => { o[p.id] = p; }); return o; });
     }
     return problemsPromise;
@@ -276,10 +298,21 @@
       </div>${footer()}`;
     if (p.hint) $('#hintBtn').addEventListener('click', () => { $('#hintBox').innerHTML = `<div class="prose">${renderMd(p.hint)}</div>`; });
     $('#showAns').addEventListener('click', () => {
-      $('#answerPanel').innerHTML = `<h2>Solution</h2><div class="prose">${renderMd(p.solution)}</div>
-        ${p.c ? `<h2 style="margin-top:18px">C version</h2><div class="prose">${renderMd(p.c)}</div>` : ''}
-        <h2 style="margin-top:18px">Explanation</h2><div class="prose">${renderMd(p.explanation)}</div>
+      const tabs = (p.approaches || []).map(a => ({ name: a.name, html: renderMd(a.body) }));
+      tabs.push({ name: 'Optimal' + (tabs.length ? '' : ' solution'), html: renderMd(p.solution) + (p.c ? '<h3>C version</h3>' + renderMd(p.c) : ''), optimal: true });
+      const last = tabs.length - 1;
+      $('#answerPanel').innerHTML = `<h2>${tabs.length > 1 ? 'Approaches (' + tabs.length + ')' : 'Solution'}</h2>
+        ${tabs.length > 1 ? `<div class="seg approach-tabs" role="tablist">${tabs.map((t, i) => `<button role="tab" class="${i === last ? 'on' : ''}" data-tab="${i}">${i + 1}. ${esc(t.name)}${t.optimal ? ' ★' : ''}</button>`).join('')}</div>` : ''}
+        ${tabs.map((t, i) => `<div class="prose approach-pane" data-pane="${i}" ${i === last ? '' : 'hidden'}>${t.html}</div>`).join('')}
+        ${p.walkthrough ? `<h2 style="margin-top:22px">Step-by-step walkthrough</h2><div class="prose">${renderMd(p.walkthrough)}</div>` : ''}
+        <h2 style="margin-top:22px">Key insights</h2><div class="prose">${renderMd(p.explanation)}</div>
         <div class="btn-row" style="margin-top:14px"><button class="btn btn-sm" id="hideAns">Hide answer</button></div>`;
+      const tabBar = $('#answerPanel .approach-tabs');
+      if (tabBar) tabBar.addEventListener('click', ev => {
+        const b = ev.target.closest('button'); if (!b) return;
+        tabBar.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        $('#answerPanel').querySelectorAll('.approach-pane').forEach(pn => { pn.hidden = pn.dataset.pane !== b.dataset.tab; });
+      });
       $('#hideAns').addEventListener('click', () => viewProblem(pid, slug));
     });
   }

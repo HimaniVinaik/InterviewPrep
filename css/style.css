@@ -355,3 +355,9 @@ a.chip:hover { border-color: var(--accent); text-decoration: none; }
 
 .toast { position: fixed; left: 50%; bottom: calc(var(--bottomnav-h) + 20px); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 10px; font-size: 14px; z-index: 200; box-shadow: var(--shadow); }
 footer.site-foot { text-align: center; color: var(--text-faint); font-size: 13px; padding: 30px 0 10px; }
+
+/* approach tabs */
+.approach-tabs { display: flex; flex-wrap: wrap; margin: 4px 0 14px; width: 100%; }
+.approach-tabs button { flex: 1 1 auto; border-right: 1px solid var(--border); }
+.approach-tabs button:last-child { border-right: 0; }
+.approach-pane[hidden] { display: none; }
