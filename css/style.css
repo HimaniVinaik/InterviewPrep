@@ -361,3 +361,12 @@ footer.site-foot { text-align: center; color: var(--text-faint); font-size: 13px
 .approach-tabs button { flex: 1 1 auto; border-right: 1px solid var(--border); }
 .approach-tabs button:last-child { border-right: 0; }
 .approach-pane[hidden] { display: none; }
+
+/* notes */
+.note-tabs { margin-bottom: 10px; }
+.note-box { width: 100%; min-height: 140px; resize: vertical; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-code); color: var(--text); font: 15px/1.55 var(--mono); font-variant-ligatures: none; }
+.note-box:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.note-preview { padding: 6px 2px; min-height: 60px; }
+.note-status { font-size: 13px; margin-top: 8px; }
+.note-dot { font-size: 13px; }
+.rm-node.extra { width: auto; }

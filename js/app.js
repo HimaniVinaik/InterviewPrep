@@ -14,7 +14,8 @@
   const solved = store.get('solved', {});   // problemKey -> timestamp
   const starred = store.get('starred', {}); // problemKey -> 1
   const readMap = store.get('read', {});    // section/id -> timestamp
-  const save = () => { store.set('solved', solved); store.set('starred', starred); store.set('read', readMap); };
+  const notes = store.get('notes', {});     // problemKey -> { text, updated }
+  const save = () => { store.set('solved', solved); store.set('starred', starred); store.set('read', readMap); store.set('notes', notes); };
 
   /* ---------------- Icons ---------------- */
   const ICON = {
@@ -59,7 +60,9 @@
     return t;
   }
 
-  const PATTERN_IDS = M.patterns.levels.flat();
+  const TREE_IDS = M.patterns.levels.flat();
+  const EXTRA_IDS = M.patterns.extra || [];          // standalone paths outside the roadmap tree
+  const PATTERN_IDS = TREE_IDS.concat(EXTRA_IDS);
   let problemsPromise = null;
   // Parse a pattern markdown file into { intro, problems[] }
   function parsePattern(id, text) {
@@ -97,7 +100,7 @@
   // Companion file <pattern>.more.md: "## <slug>" blocks with "### Approach N: Name" and "### Walkthrough" sections
   function mergeMore(pat, text) {
     const bySlug = {};
-    pat.problems.forEach(p => { bySlug[p.slug] = p; p.approaches = []; p.walkthrough = ''; });
+    pat.problems.forEach(p => { bySlug[p.slug] = p; p.approaches = p.approaches || []; p.walkthrough = p.walkthrough || ''; p.complexity = p.complexity || ''; });
     text.replace(/\r\n?/g, '\n').split(/\n(?=## )/).forEach(chunk => {
       if (!chunk.startsWith('## ')) return;
       const nl = chunk.indexOf('\n');
@@ -110,6 +113,7 @@
         const body = e < 0 ? '' : sec.slice(e + 1).trim();
         if (/^approach/i.test(name)) p.approaches.push({ name: name.replace(/^approach\s*\d*\s*[:.-]?\s*/i, ''), body });
         else if (/^walkthrough/i.test(name)) p.walkthrough = body;
+        else if (/^complexity/i.test(name)) p.complexity = body;
       });
     });
     return pat;
@@ -119,6 +123,7 @@
       problemsPromise = Promise.all(PATTERN_IDS.map(id =>
         fetchText('content/problems/' + id + '.md').then(t => parsePattern(id, t))
           .then(pat => fetchText('content/problems/' + id + '.more.md').then(t => mergeMore(pat, t), () => pat))
+          .then(pat => fetchText('content/problems/' + id + '.complexity.md').then(t => mergeMore(pat, t), () => pat))
           .catch(e => ({ id, intro: '⚠️ ' + e.message, problems: [] }))
       )).then(list => { const o = {}; list.forEach(p => { o[p.id] = p; }); return o; });
     }
@@ -143,7 +148,7 @@
     return MD.render(text, { toc });
   }
   function footer() {
-    return `<footer class="site-foot">PrepForge · progress is saved in this browser · <a href="#/" data-action="export">Export progress</a> · <a href="#/" data-action="import">Import</a></footer>`;
+    return `<footer class="site-foot">PrepForge · progress is saved in this browser · <a href="#/notes">My notes</a> · <a href="#/" data-action="export">Export progress &amp; notes</a> · <a href="#/" data-action="import">Import</a></footer>`;
   }
 
   /* ---------------- Views ---------------- */
@@ -198,10 +203,11 @@
       ${footer()}`;
   }
 
+  const hasNote = k => !!(notes[k] && notes[k].text && notes[k].text.trim());
   function problemRow(p) {
     return `<div class="prow">
       <input type="checkbox" class="check" data-solve="${p.key}" ${solved[p.key] ? 'checked' : ''} aria-label="Mark solved">
-      <div><a class="ptitle" href="#/problems/${p.pattern}/${p.slug}">${esc(p.title)}</a>
+      <div><a class="ptitle" href="#/problems/${p.pattern}/${p.slug}">${esc(p.title)}</a>${hasNote(p.key) ? ' <span class="note-dot" title="You have notes on this problem">📝</span>' : ''}
         <div class="pmeta">${esc(M.patterns.meta[p.pattern].title)}${p.lc && p.lc !== '-' ? ' · LC ' + esc(p.lc) : ''}</div></div>
       <span class="diff ${p.difficulty}">${p.difficulty}</span>
       <button class="star ${starred[p.key] ? 'on' : ''}" data-star="${p.key}" aria-label="Star for review">★</button>
@@ -215,7 +221,7 @@
     let html = `<div class="page-head"><h1>Problem Roadmap</h1>
       <p>Work top-down. Each node is a pattern; master the earlier ones first — later patterns build on them. Every problem has a hint, a C++ solution and an explanation behind <em>Show Answer</em>.</p></div>
       <div class="card" style="margin-bottom:20px">${bar(done, total)}
-        <div class="btn-row" style="margin-top:12px"><button class="btn btn-sm" data-action="random">${ICON.shuffle} Random unsolved</button><a class="btn btn-sm" href="#/problems/all">All problems list</a></div></div>
+        <div class="btn-row" style="margin-top:12px"><button class="btn btn-sm" data-action="random">${ICON.shuffle} Random unsolved</button><a class="btn btn-sm" href="#/problems/all">All problems list</a><a class="btn btn-sm" href="#/notes">📝 My notes</a></div></div>
       <div class="roadmap">`;
     M.patterns.levels.forEach((lvl, li) => {
       if (li) html += '<div class="rm-connector"></div>';
@@ -226,8 +232,36 @@
           <div class="bar"><span style="width:${ps.length ? d / ps.length * 100 : 0}%"></span></div></a>`;
       }).join('') + '</div>';
     });
-    html += '</div>' + footer();
+    html += '</div>';
+    if (EXTRA_IDS.length) {
+      html += `<h2 class="section-title" style="margin-top:34px">Standalone paths</h2>
+        <p class="muted" style="margin-top:-6px">Separate from the tree — do these any time.</p><div class="grid grid-2">` +
+        EXTRA_IDS.map(id => {
+          const ps = P[id].problems; const d = ps.filter(p => solved[p.key]).length;
+          return `<a class="card rm-node extra ${ps.length && d === ps.length ? 'complete' : ''}" href="#/problems/${id}">
+            <span class="rm-title">${esc(M.patterns.meta[id].title)} <span class="rm-count">${d}/${ps.length}</span></span>
+            <span class="muted" style="font-size:14px">${esc(M.patterns.meta[id].blurb)}</span>
+            <div class="bar"><span style="width:${ps.length ? d / ps.length * 100 : 0}%"></span></div></a>`;
+        }).join('') + '</div>';
+    }
+    html += footer();
     app.innerHTML = html;
+  }
+
+  async function viewNotes() {
+    const P = await loadProblems();
+    const list = PATTERN_IDS.flatMap(id => P[id].problems).filter(p => hasNote(p.key))
+      .sort((a, b) => (notes[b.key].updated || 0) - (notes[a.key].updated || 0));
+    app.innerHTML = `<div class="crumbs"><a href="#/problems">Roadmap</a> / <span>My notes</span></div>
+      <div class="page-head"><h1>My notes</h1><p>Every problem you've written notes on, most recently edited first. Notes are saved in this browser and included in <em>Export progress</em>.</p></div>
+      ${list.length ? list.map(p => `<div class="card" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <a class="ptitle" style="font-weight:650" href="#/problems/${p.pattern}/${p.slug}">${esc(p.title)}</a>
+            <span class="faint" style="font-size:13px">${esc(M.patterns.meta[p.pattern].title)} · ${new Date(notes[p.key].updated).toLocaleString()}</span>
+          </div>
+          <div class="prose" style="margin-top:8px;font-size:15px">${renderMd(notes[p.key].text)}</div></div>`).join('')
+        : '<div class="card sr-empty">No notes yet. Open any problem and use the <strong>My notes</strong> box.</div>'}
+      ${footer()}`;
   }
 
   const listState = { q: '', diff: 'All', hide: false };
@@ -275,7 +309,7 @@
     const gi = flat.indexOf(p);
     const prev = flat[gi - 1], next = flat[gi + 1];
     app.innerHTML = `
-      <div class="crumbs"><a href="#/problems">Roadmap</a> / <a href="#/problems/${pid}">${esc(M.patterns.meta[pid].title)}</a> / <span>${p.idx + 1} of ${pat.problems.length}</span></div>
+      <div class="crumbs"><a href="#/problems">${EXTRA_IDS.includes(pid) ? 'Problems' : 'Roadmap'}</a> / <a href="#/problems/${pid}">${esc(M.patterns.meta[pid].title)}</a> / <span>${p.idx + 1} of ${pat.problems.length}</span></div>
       <div class="problem-head">
         <h1>${esc(p.title)}</h1>
         <span class="diff ${p.difficulty}">${p.difficulty}</span>
@@ -292,10 +326,34 @@
         <h2>Answer</h2>
         <div class="reveal-box" id="revealBox"><p>Give it a real attempt first — about 20–25 minutes. Then compare.</p><button class="btn btn-primary" id="showAns">Show Answer</button></div>
       </div>
+      <div class="card panel notes-panel">
+        <h2>My notes</h2>
+        <div class="seg note-tabs"><button class="on" data-mode="edit">Write</button><button data-mode="preview">Preview</button></div>
+        <textarea id="noteBox" class="note-box" rows="6" placeholder="Your approach, mistakes you made, edge cases, complexity, things to remember… (Markdown supported)">${esc((notes[p.key] && notes[p.key].text) || '')}</textarea>
+        <div id="notePreview" class="prose note-preview" hidden></div>
+        <div class="note-status faint" id="noteStatus">${notes[p.key] && notes[p.key].updated ? 'Saved · ' + new Date(notes[p.key].updated).toLocaleString() : 'Autosaves as you type'}</div>
+      </div>
       <div class="pager">
         ${prev ? `<a class="card" href="#/problems/${prev.pattern}/${prev.slug}"><small>← Previous</small>${esc(prev.title)}</a>` : '<span></span>'}
         ${next ? `<a class="card next" href="#/problems/${next.pattern}/${next.slug}"><small>Next →</small>${esc(next.title)}</a>` : ''}
       </div>${footer()}`;
+    const box = $('#noteBox'), status = $('#noteStatus');
+    let noteTimer = null;
+    const saveNote = () => {
+      const text = box.value;
+      if (text.trim()) notes[p.key] = { text, updated: Date.now() }; else delete notes[p.key];
+      save();
+      status.textContent = text.trim() ? 'Saved ✓ · ' + new Date().toLocaleTimeString() : 'Note cleared';
+    };
+    box.addEventListener('input', () => { status.textContent = 'Saving…'; clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 400); });
+    box.addEventListener('blur', () => { if (noteTimer) { clearTimeout(noteTimer); noteTimer = null; saveNote(); } });
+    $('.note-tabs').addEventListener('click', ev => {
+      const b = ev.target.closest('button'); if (!b) return;
+      $('.note-tabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      const prev = b.dataset.mode === 'preview';
+      box.hidden = prev; $('#notePreview').hidden = !prev;
+      if (prev) $('#notePreview').innerHTML = box.value.trim() ? renderMd(box.value) : '<p class="faint">Nothing written yet.</p>';
+    });
     if (p.hint) $('#hintBtn').addEventListener('click', () => { $('#hintBox').innerHTML = `<div class="prose">${renderMd(p.hint)}</div>`; });
     $('#showAns').addEventListener('click', () => {
       const tabs = (p.approaches || []).map(a => ({ name: a.name, html: renderMd(a.body) }));
@@ -305,6 +363,7 @@
         ${tabs.length > 1 ? `<div class="seg approach-tabs" role="tablist">${tabs.map((t, i) => `<button role="tab" class="${i === last ? 'on' : ''}" data-tab="${i}">${i + 1}. ${esc(t.name)}${t.optimal ? ' ★' : ''}</button>`).join('')}</div>` : ''}
         ${tabs.map((t, i) => `<div class="prose approach-pane" data-pane="${i}" ${i === last ? '' : 'hidden'}>${t.html}</div>`).join('')}
         ${p.walkthrough ? `<h2 style="margin-top:22px">Step-by-step walkthrough</h2><div class="prose">${renderMd(p.walkthrough)}</div>` : ''}
+        ${p.complexity ? `<h2 style="margin-top:22px">Complexity analysis (optimal)</h2><div class="prose">${renderMd(p.complexity)}</div>` : ''}
         <h2 style="margin-top:22px">Key insights</h2><div class="prose">${renderMd(p.explanation)}</div>
         <div class="btn-row" style="margin-top:14px"><button class="btn btn-sm" id="hideAns">Hide answer</button></div>`;
       const tabBar = $('#answerPanel .approach-tabs');
@@ -380,8 +439,10 @@
       if (!top) await viewHome();
       else if (top === 'problems') {
         if (!parts[1]) await viewRoadmap();
+        else if (parts[1] === 'notes') await viewNotes();
         else if (!parts[2]) await viewPattern(parts[1]);
         else await viewProblem(parts[1], parts[2]);
+      } else if (top === 'notes') { markNav('problems'); await viewNotes();
       } else if (M.sections[top]) {
         if (!parts[1]) viewSection(top); else await viewArticle(top, parts[1]);
       } else viewNotFound();
@@ -443,7 +504,7 @@
         const p = pool[Math.floor(Math.random() * pool.length)];
         location.hash = `#/problems/${p.pattern}/${p.slug}`;
       } else if (a === 'export') {
-        const blob = new Blob([JSON.stringify({ solved, starred, read: readMap }, null, 1)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify({ solved, starred, read: readMap, notes }, null, 1)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const l = document.createElement('a'); l.href = url; l.download = 'prepforge-progress.json'; l.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -452,7 +513,7 @@
         inp.onchange = async () => {
           try {
             const d = JSON.parse(await inp.files[0].text());
-            Object.assign(solved, d.solved || {}); Object.assign(starred, d.starred || {}); Object.assign(readMap, d.read || {});
+            Object.assign(solved, d.solved || {}); Object.assign(starred, d.starred || {}); Object.assign(readMap, d.read || {}); Object.assign(notes, d.notes || {});
             save(); toast('Progress imported'); route();
           } catch (err) { toast('Invalid file'); }
         };

@@ -15,6 +15,8 @@ window.MANIFEST = {
       ['advanced-graphs', 'dp-2d', 'bit-manipulation', 'math-geometry'],
       ['c-embedded'],
     ],
+    // Standalone paths shown separately from the tree
+    extra: ['classics'],
     meta: {
       'arrays-hashing': { title: 'Arrays & Hashing', blurb: 'Hash maps/sets, counting, prefix products — the foundation of everything else.' },
       'two-pointers': { title: 'Two Pointers', blurb: 'Converging or same-direction pointers over sorted / symmetric data.' },
@@ -34,6 +36,7 @@ window.MANIFEST = {
       'dp-2d': { title: '2-D Dynamic Programming', blurb: 'Grids, two strings, knapsack, interval DP.' },
       'bit-manipulation': { title: 'Bit Manipulation', blurb: 'XOR tricks, masks, counting bits — embedded favourite.' },
       'math-geometry': { title: 'Math & Geometry', blurb: 'Matrix traversal, fast power, digit manipulation.' },
+      'classics': { title: 'Classics', blurb: 'The timeless warm-ups: FizzBuzz, Two Sum, palindromes, Fibonacci, Roman numerals, primes and friends — each with several solutions.' },
       'c-embedded': { title: 'C & Embedded Classics', blurb: 'memcpy/memmove, atoi, ring buffers, bit macros, endianness — asked in C/firmware loops.' },
     },
   },
