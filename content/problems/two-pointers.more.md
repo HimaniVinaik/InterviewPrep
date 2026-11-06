@@ -1,36 +1,5 @@
 ## valid-palindrome
 
-### Approach 1: Build a cleaned string, compare with its reverse
-```cpp
-class Solution {
-public:
-    bool isPalindrome(string s) {
-        string t;
-        for (unsigned char c : s)
-            if (isalnum(c)) t += (char)tolower(c);
-        return t == string(t.rbegin(), t.rend());
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n) for the cleaned copy and its reverse. Easiest to get right; mention the O(1)-space follow-up.
-
-### Approach 2: Cleaned string + two pointers
-```cpp
-class Solution {
-public:
-    bool isPalindrome(string s) {
-        string t;
-        for (unsigned char c : s) if (isalnum(c)) t += (char)tolower(c);
-        for (int l = 0, r = (int)t.size() - 1; l < r; ++l, --r)
-            if (t[l] != t[r]) return false;
-        return true;
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n). Halves the comparisons, still copies.
-
 ### Walkthrough
 **Goal:** compare characters from both ends, ignoring punctuation/case, without copying.
 
@@ -52,42 +21,6 @@ And for `"race a car"`: r→a, a=a, c=c, e vs a… mismatch at `e`/`a` → false
 
 ## two-sum-ii-input-array-is-sorted
 
-### Approach 1: Binary search for each complement
-```cpp
-class Solution {
-public:
-    vector<int> twoSum(vector<int>& a, int target) {
-        int n = a.size();
-        for (int i = 0; i < n; ++i) {
-            int need = target - a[i];
-            // search only to the right of i so we don't reuse a[i]
-            auto it = lower_bound(a.begin() + i + 1, a.end(), need);
-            if (it != a.end() && *it == need) return {i + 1, int(it - a.begin()) + 1};
-        }
-        return {};
-    }
-};
-```
-
-**Time:** O(n log n) · **Space:** O(1). Uses sortedness, but not fully.
-
-### Approach 2: Hash map (ignores sortedness)
-```cpp
-class Solution {
-public:
-    vector<int> twoSum(vector<int>& a, int target) {
-        unordered_map<int, int> idx;
-        for (int i = 0; i < (int)a.size(); ++i) {
-            if (auto it = idx.find(target - a[i]); it != idx.end()) return {it->second + 1, i + 1};
-            idx[a[i]] = i;
-        }
-        return {};
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n) — violates the O(1) space requirement, but worth contrasting.
-
 ### Walkthrough
 **Goal:** exploit sorted order to discard one candidate per step.
 
@@ -108,52 +41,6 @@ public:
 **Why it never misses the answer:** each pointer move eliminates a value that provably cannot be part of a solution, so the true pair is never skipped.
 
 ## 3sum
-
-### Approach 1: Brute force with a set to dedupe
-```cpp
-class Solution {
-public:
-    vector<vector<int>> threeSum(vector<int>& nums) {
-        ranges::sort(nums);
-        set<vector<int>> uniq;
-        int n = nums.size();
-        for (int i = 0; i < n; ++i)
-            for (int j = i + 1; j < n; ++j)
-                for (int k = j + 1; k < n; ++k)
-                    if (nums[i] + nums[j] + nums[k] == 0) uniq.insert({nums[i], nums[j], nums[k]});
-        return {uniq.begin(), uniq.end()};
-    }
-};
-```
-
-**Time:** O(n³) · **Space:** O(answers). Too slow (n up to 3000).
-
-### Approach 2: Fix one, hash-set Two Sum on the rest
-```cpp
-class Solution {
-public:
-    vector<vector<int>> threeSum(vector<int>& nums) {
-        ranges::sort(nums);
-        vector<vector<int>> res;
-        int n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            if (i > 0 && nums[i] == nums[i - 1]) continue;       // skip duplicate anchors
-            unordered_set<int> seen;
-            for (int j = i + 1; j < n; ++j) {
-                int need = -nums[i] - nums[j];
-                if (seen.count(need)) {
-                    res.push_back({nums[i], need, nums[j]});
-                    while (j + 1 < n && nums[j] == nums[j + 1]) ++j;   // skip duplicate thirds
-                }
-                seen.insert(nums[j]);
-            }
-        }
-        return res;
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(n). Same complexity as Optimal but more memory and trickier dedupe.
 
 ### Walkthrough
 **Goal:** reduce 3Sum to n runs of the two-pointer Two Sum II.
@@ -180,41 +67,6 @@ Result `[[-1,-1,2], [-1,0,1]]`.
 
 ## container-with-most-water
 
-### Approach 1: Brute force over all pairs
-```cpp
-class Solution {
-public:
-    int maxArea(vector<int>& h) {
-        int best = 0, n = h.size();
-        for (int i = 0; i < n; ++i)
-            for (int j = i + 1; j < n; ++j)
-                best = max(best, min(h[i], h[j]) * (j - i));
-        return best;
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(1). TLE for n = 10⁵.
-
-### Approach 2: Two pointers that skip non-improving heights
-```cpp
-class Solution {
-public:
-    int maxArea(vector<int>& h) {
-        int l = 0, r = (int)h.size() - 1, best = 0;
-        while (l < r) {
-            int H = min(h[l], h[r]);
-            best = max(best, H * (r - l));
-            while (l < r && h[l] <= H) ++l;     // skip lines that can't beat height H
-            while (l < r && h[r] <= H) --r;
-        }
-        return best;
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(1). Same idea as Optimal with a constant-factor speed-up.
-
 ### Walkthrough
 **Goal:** maximise `min(h[l], h[r]) × (r − l)`.
 
@@ -237,71 +89,6 @@ public:
 Answer **49**.
 
 ## trapping-rain-water
-
-### Approach 1: Brute force per bar
-```cpp
-class Solution {
-public:
-    int trap(vector<int>& h) {
-        int n = h.size(), water = 0;
-        for (int i = 0; i < n; ++i) {
-            int lmax = 0, rmax = 0;
-            for (int j = 0; j <= i; ++j) lmax = max(lmax, h[j]);
-            for (int j = i; j < n; ++j) rmax = max(rmax, h[j]);
-            water += min(lmax, rmax) - h[i];
-        }
-        return water;
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(1).
-
-### Approach 2: Prefix-max and suffix-max arrays
-```cpp
-class Solution {
-public:
-    int trap(vector<int>& h) {
-        int n = h.size();
-        if (n == 0) return 0;
-        vector<int> L(n), R(n);
-        L[0] = h[0];
-        for (int i = 1; i < n; ++i) L[i] = max(L[i - 1], h[i]);
-        R[n - 1] = h[n - 1];
-        for (int i = n - 2; i >= 0; --i) R[i] = max(R[i + 1], h[i]);
-        int water = 0;
-        for (int i = 0; i < n; ++i) water += min(L[i], R[i]) - h[i];
-        return water;
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n). The cleanest way to *explain* the formula.
-
-### Approach 3: Monotonic stack (fills water layer by layer)
-```cpp
-class Solution {
-public:
-    int trap(vector<int>& h) {
-        vector<int> st;            // indices with decreasing heights
-        int water = 0;
-        for (int i = 0; i < (int)h.size(); ++i) {
-            while (!st.empty() && h[i] > h[st.back()]) {
-                int bottom = st.back(); st.pop_back();
-                if (st.empty()) break;                       // no left wall
-                int left = st.back();
-                int width = i - left - 1;
-                int height = min(h[left], h[i]) - h[bottom];
-                water += width * height;                     // horizontal slab
-            }
-            st.push_back(i);
-        }
-        return water;
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n).
 
 ### Walkthrough
 **Goal:** water above bar i = `min(maxLeft(i), maxRight(i)) − h[i]`; compute without arrays.
@@ -328,37 +115,6 @@ public:
 | 6 | 7 | 1 | 3 | left | 2 | 1 | **6** |
 
 ## move-zeroes
-
-### Approach 1: Extra array
-```cpp
-class Solution {
-public:
-    void moveZeroes(vector<int>& nums) {
-        vector<int> out;
-        out.reserve(nums.size());
-        for (int x : nums) if (x != 0) out.push_back(x);
-        out.resize(nums.size(), 0);               // pad with zeros
-        nums = std::move(out);
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n) — violates "in place".
-
-### Approach 2: Compact then fill
-```cpp
-class Solution {
-public:
-    void moveZeroes(vector<int>& nums) {
-        int w = 0;
-        for (int x : nums) if (x != 0) nums[w++] = x;         // overwrite with non-zeros
-        fill(nums.begin() + w, nums.end(), 0);                // zero the tail
-        // STL: auto it = remove(nums.begin(), nums.end(), 0); fill(it, nums.end(), 0);
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(1). Does more writes than the swap version when there are few zeros.
 
 ### Walkthrough
 **Goal:** stable compaction of non-zeros to the front, in place.
