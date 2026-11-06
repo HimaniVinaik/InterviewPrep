@@ -112,7 +112,7 @@ window.MANIFEST = {
           { id: 'c-vs-cpp', title: 'C vs C++ Differences', desc: 'The subtle differences that trip people up when switching between them.' },
         ] },
         { name: 'Rapid Fire', items: [
-          { id: 'cpp-interview-qa', title: 'C/C++ Interview Q&A', desc: '60+ short questions with crisp answers. Great for the night before.' },
+          { id: 'cpp-interview-qa', title: 'C/C++ Interview Q&A', desc: '125+ short questions with crisp answers, plus verified tricky outputs. Great for the night before.' },
         ] },
       ],
     },

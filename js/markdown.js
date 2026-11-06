@@ -108,7 +108,8 @@
       const ext = /^https?:/.test(u);
       return '<a href="' + u + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + t + '</a>';
     });
-    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Bold may contain *italic* runs: "**Meyers — *Effective C++*, Item 27**".
+    s = s.replace(/\*\*((?:[^*]|\*[^*]+\*)+?)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?!\w)/g, '$1<em>$2</em>');
     s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
     s = s.replace(/\u0000(\d+)\u0000/g, (_, k) => '<code>' + esc(codes[+k]) + '</code>');
