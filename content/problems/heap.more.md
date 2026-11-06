@@ -43,7 +43,7 @@
 **Goal:** the k smallest distances; full sorting is unnecessary.
 
 1. Compare **squared** distances — same order, no `sqrt`, exact integers.
-2. `nth_element(begin, begin + k, end, cmp)` rearranges so that the first k elements are the k smallest (in arbitrary order), using quickselect: average O(n).
+2. `nth_element(begin, begin + k, end, closer)` rearranges so that the first k elements are the k smallest (in arbitrary order), using quickselect: average O(n).
 3. Return those k.
 
 **Quickselect idea, dry run** on distances `[10, 2, 13, 5]` (points), k = 2:
