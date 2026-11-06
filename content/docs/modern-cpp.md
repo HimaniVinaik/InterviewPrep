@@ -201,3 +201,13 @@ std::unreachable();                                 // tell the compiler a path 
 - "I default to C++20: concepts for template interfaces, `std::span` and `string_view` for non-owning parameters, ranges for pipelines, `std::format` for formatting, `jthread` for threads, and smart pointers for ownership."
 - Know **why** each feature exists (the problem it solves), not just syntax.
 - Be honest about tooling maturity: modules and some C++23 library parts may not be available on every compiler, especially embedded toolchains (many are on GCC 10–13 with partial C++20).
+
+## Interview Q&A
+
+- **Name four headline features of C++20.** Concepts, ranges, coroutines and modules — plus `<=>`, `std::span`, `std::format`, `std::jthread`, designated initialisers, `consteval`/`constinit`.
+- **What problem do concepts solve?** They give templates named, checked constraints, producing readable errors at the call site and enabling overloading by constraint — replacing SFINAE/`enable_if` tricks.
+- **What is `std::span` and when do you use it?** A non-owning view of a contiguous sequence (pointer + size). Use it for function parameters instead of `(T* ptr, size_t len)`; it accepts C arrays, `std::array` and `std::vector`.
+- **What does `auto operator<=>(const T&) const = default;` give you?** Memberwise three-way comparison, from which the compiler derives `<`, `<=`, `>`, `>=`; a defaulted `<=>` also implicitly declares a defaulted `==`.
+- **How is `std::jthread` better than `std::thread`?** It joins automatically in its destructor (a joinable `std::thread` would call `std::terminate`) and supports cooperative cancellation via `std::stop_token`.
+- **What is a dangling `string_view` and how does it happen?** A `string_view` doesn't own its characters; if the `std::string` it refers to is destroyed (e.g. a temporary or a local returned from a function), the view points at freed memory.
+- **What does C++23's `std::expected<T, E>` provide?** A value-or-error return type: either a `T` or an error `E`, explicitly checked by the caller — error handling without exceptions.

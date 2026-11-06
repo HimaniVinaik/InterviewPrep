@@ -166,3 +166,11 @@ CI: build with GCC and Clang, run unit tests under ASan/UBSan and TSan, run clan
 - "Effective Modern C++" — Scott Meyers (C++11/14; still essential)
 - cppreference.com — the reference
 - Compiler Explorer (godbolt.org) — see what code compiles to
+
+## Interview Q&A
+
+- **What does "no naked new/delete" mean?** Ownership is expressed by RAII types: use `std::make_unique`/`make_shared` and containers, so memory is released automatically and exception-safely.
+- **How should you pass a large read-only object to a function?** By `const T&` (or `std::string_view` / `std::span` for strings and contiguous data) — no copy, and the function can't modify it.
+- **How do you pass a parameter you intend to store?** By value, then `std::move` it into the member: one copy for lvalue arguments, zero copies for rvalues.
+- **Why mark move constructors `noexcept`?** Containers like `std::vector` only move elements during reallocation if the move constructor is `noexcept`; otherwise they copy to keep the strong exception guarantee.
+- **Which compiler flags and tools belong in every C++ project?** `-Wall -Wextra -Wpedantic -Wshadow -Wconversion`, sanitizers (ASan/UBSan/TSan) in test builds, clang-tidy, clang-format, and a CI that builds with more than one compiler.

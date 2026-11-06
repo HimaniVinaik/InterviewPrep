@@ -108,3 +108,11 @@ OTA service: signed firmware in object storage + CDN, staged rollout
 2. Draw the diagram (paper or excalidraw).
 3. Compare with these notes; note what you missed.
 4. Re-do it a week later with a twist (10× scale, multi-region, strict consistency).
+
+## Interview Q&A
+
+- **How do you generate short codes for a URL shortener?** Take a unique 64-bit ID (ticket server or Snowflake) and base62-encode it — no collisions; optionally scramble the bits so codes aren't sequential.
+- **301 vs 302 redirect for a URL shortener?** 301 (permanent) lets browsers cache the redirect, reducing load; 302 (temporary) sends every click to your servers, which you need for analytics.
+- **Fan-out on write vs fan-out on read for a news feed?** Write: push post IDs into each follower's timeline (fast reads, expensive for celebrities). Read: merge followees' posts at request time (cheap writes, slower reads). Real systems use a hybrid.
+- **What does W + R > N guarantee in a quorum store?** Every read quorum overlaps every write quorum, so a read sees at least one replica with the latest acknowledged write.
+- **Why add jitter to IoT device reconnects?** After an outage, all devices reconnecting at once overwhelm the brokers (thundering herd); random jitter spreads the load.

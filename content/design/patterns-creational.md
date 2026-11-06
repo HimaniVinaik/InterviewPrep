@@ -232,3 +232,11 @@ Pair with a `unique_ptr` + custom deleter that calls `release` for RAII-safe han
 - Copy through a base pointer → **Prototype**.
 - One hardware resource → **Singleton** (with caveats) or just one instance passed by reference.
 - No heap / bounded latency → **Object Pool**.
+
+## Interview Q&A
+
+- **What are the drawbacks of the Singleton pattern?** Hidden global state, hidden dependencies, hard to substitute in tests, and destruction-order problems at exit. Prefer creating one instance and passing it explicitly (dependency injection).
+- **How do you implement a thread-safe singleton in modern C++?** Use a function-local static (`static T inst; return inst;`) — since C++11 its initialisation is guaranteed thread-safe ("magic statics").
+- **When would you use the Builder pattern?** When an object has many optional parameters or needs validation once fully configured — it avoids telescoping constructors. Designated initialisers are a lightweight C++20 alternative for plain configs.
+- **Factory Method vs Abstract Factory?** Factory Method creates one product, letting a function/subclass decide the concrete type. Abstract Factory creates families of related products that must match (e.g. a whole HAL per board).
+- **How do you copy an object through a base-class pointer?** The Prototype pattern: a virtual `clone()` returning `std::unique_ptr<Base>`, implemented in each derived class (often via a CRTP helper).

@@ -155,3 +155,11 @@ void open(const Path& p, OpenMode mode);         // instead of open(p, true, fal
 - When you propose a class, say *what it's responsible for* in one sentence.
 - Mention testability: dependency inversion → you can unit test with fakes.
 - Don't over-engineer: an interviewer might push back on 10 interfaces for a 50-line problem — that's YAGNI.
+
+## Interview Q&A
+
+- **State the Single Responsibility Principle.** A class should have one reason to change — one responsibility. Split parsing, storage, networking and presentation into separate components.
+- **Explain the Liskov Substitution Principle with an example.** Subtypes must be usable wherever the base type is expected without breaking correctness. Square deriving from a mutable Rectangle violates it: setting width then height gives an unexpected area.
+- **What is Dependency Inversion and why does it help testing?** High-level code depends on abstractions (interfaces/concepts) rather than concrete classes. You can inject a fake implementation (e.g. a fake UART) in unit tests.
+- **Composition vs inheritance: which do you prefer and why?** Prefer composition: has-a relationships are looser, swappable at runtime and easier to test. Use inheritance for genuine is-a relationships and interfaces.
+- **What is the Interface Segregation Principle?** Clients shouldn't depend on methods they don't use; prefer several small focused interfaces over one fat interface.

@@ -308,3 +308,11 @@ struct Base { void init(this auto&& self) { self.configure_clock(); } };
 - "Custom container usable with range-for" → **Iterator**.
 - "New operations on a stable set of types" → **Visitor** / `std::variant`.
 - "Polymorphism without virtual overhead" → **CRTP** / concepts.
+
+## Interview Q&A
+
+- **Strategy vs State pattern?** Both swap behaviour via a held object. Strategy is chosen by the client to vary an algorithm; State changes itself as the object's internal state transitions.
+- **What are common pitfalls with the Observer pattern?** Dangling callbacks when observers die while subscribed, re-entrancy (modifying the subscriber list during notification), and thread safety / calling callbacks while holding a lock.
+- **How does the Command pattern enable undo/redo?** Each request is an object with `execute()` and `undo()`; a history stack of executed commands can be popped to undo and re-executed to redo.
+- **What is CRTP and why use it?** The Curiously Recurring Template Pattern: `class D : public Base<D>`. The base knows the derived type at compile time, giving static polymorphism with no vtable and full inlining.
+- **What's a modern C++ alternative to the classic Visitor pattern?** `std::variant` with `std::visit` and an overloaded lambda set — no `accept()` boilerplate, and the compiler checks every alternative is handled.

@@ -145,3 +145,11 @@ int f(int n) { if (n <= 1) return 1; return f(n / 2) + f(n / 2); }   // T(n)=2T(
 int g(int n) { int s = 0; for (int i = n; i > 0; i /= 2) for (int j = 0; j < i; ++j) ++s; return s; }
 // n + n/2 + n/4 + ... = 2n -> O(n), not O(n log n)!
 ```
+
+## Interview Q&A
+
+- **What is the time complexity of building a binary heap from n elements?** O(n) with bottom-up heapify — not O(n log n) — because most nodes are near the bottom and sift down only a short distance.
+- **Why is `push_back` on a `std::vector` amortised O(1)?** Capacity grows geometrically (×1.5 or ×2), so the total cost of all reallocation copies over n pushes is less than 2n — O(1) per push on average.
+- **Apply the Master theorem to T(n) = 2T(n/2) + O(n).** a = 2, b = 2, n^(log₂2) = n matches f(n) = n (case 2) → T(n) = Θ(n log n), e.g. merge sort.
+- **Why can't comparison sorting beat O(n log n)?** There are n! possible orderings and each comparison gives one bit of information, so at least log₂(n!) ≈ n log n comparisons are needed in the worst case.
+- **Roughly what input size suits an O(n²) algorithm in an interview?** Up to about 10⁴ (≈10⁸ simple operations per second in C++); for 10⁵–10⁶ you need O(n log n) or better.

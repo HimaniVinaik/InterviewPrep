@@ -252,3 +252,13 @@ int* p = a + 1;
 std::cout << *p++ << ' ' << *p << ' ' << p[-2] << ' ' << (p - a) << '\n';
 // Answer: "2 3 1 2"  — *p++ reads a[1] then advances; p[-2] is a[0].
 ```
+
+## Interview Q&A
+
+- **What's the difference between `const int*` and `int* const`?** `const int*` is a pointer to a const int: you can't modify the pointee but can reseat the pointer. `int* const` is a const pointer: you can modify the pointee but can't reseat it.
+- **Why does `sizeof(arr)` inside a function give the wrong array size?** An array parameter decays to a pointer, so `sizeof` returns the pointer size (e.g. 8), not the array size. Pass the size separately, use `std::span`, or take the array by reference.
+- **What is one-past-the-end and why is it allowed?** A pointer to the position just after the last element. You may form and compare it (it's the end of loops and iterator ranges) but never dereference it.
+- **What is a dangling pointer? Give two ways to create one.** A pointer to an object whose lifetime has ended: returning the address of a local variable, or keeping a pointer into a `std::vector` that later reallocates (or after `delete`).
+- **Why should C++ code use `nullptr` instead of `NULL`?** `NULL` is an integer constant (0 or `0L`), so `f(NULL)` can pick an integer overload. `nullptr` has its own type `std::nullptr_t` and only converts to pointer types.
+- **Pointer vs reference: when do you choose a pointer?** Use a pointer when the value may be absent (null), needs reseating, or for arrays/C APIs. Use a reference when the object must exist and the alias never changes.
+- **What does the strict aliasing rule say?** You may only access an object through its own type (or a signed/unsigned variant, or `char`/`unsigned char`/`std::byte`). Reading a `float` through an `int*` is undefined behaviour — use `memcpy` or `std::bit_cast`.

@@ -126,3 +126,10 @@ Trace one flow out loud: *"A car arrives at gate 1 → `Gate::enter(car)` → `l
 - Patterns for their own sake — justify each one.
 - Ignoring failure paths (lot full, invalid ticket, payment declined).
 - Silence. Narrate your trade-offs continuously.
+
+## Interview Q&A
+
+- **What are the steps of a good low-level design interview?** Clarify requirements, identify entities, define relationships, design interfaces for what varies, choose patterns where they earn their keep, write core code, then walk through a use case and discuss extensions.
+- **How do you decide where to put an interface?** Ask what is likely to change (pricing rules, allocation policies, storage, transports) and put an abstraction there; keep stable parts concrete.
+- **How do you make an LLD testable?** Inject dependencies (including a clock), avoid global singletons, keep classes small with single responsibilities, and return explicit results (optional/expected) for failure paths.
+- **Composition vs aggregation in UML?** Composition (filled diamond) means the whole owns the part and it dies with it; aggregation (hollow diamond) means a has-a relationship where the part can outlive the whole.

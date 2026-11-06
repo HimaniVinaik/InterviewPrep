@@ -176,3 +176,11 @@ MCUboot (used by Zephyr) implements exactly this.
 5. **Data flow:** sensor ISR/driver → queue → Control task → relay; Control publishes state → Comms task → cloud.
 6. **OTA:** A/B slots with signed images.
 7. **Testing:** control FSM unit-tested on host with simulated temperatures.
+
+## Interview Q&A
+
+- **What should an interrupt service routine do and not do?** Do: acknowledge the source, move data into a buffer, signal a task. Don't: block, allocate, print, or run long loops — defer heavy work to the main loop or a task.
+- **Why layer firmware into application, drivers and HAL?** Dependencies point downward through interfaces, so business logic can be unit-tested on a PC with fake drivers and ported to new hardware by replacing only the HAL.
+- **How do you implement a safe OTA firmware update?** A/B slots: download to the inactive slot, verify a signature and version, boot it in trial mode, and roll back automatically if the new image doesn't confirm it's healthy.
+- **How should the watchdog be kicked in an RTOS system?** From a supervisor that only kicks it when every task has checked in recently — not from a timer ISR, which keeps running even if tasks hang.
+- **Super loop vs RTOS: when do you choose each?** Super loop for simple, single-purpose, very constrained devices; RTOS when there are several independent timing requirements, blocking comms stacks or complex concurrency.

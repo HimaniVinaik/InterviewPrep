@@ -151,3 +151,11 @@ Consensus algorithms (**Raft**, Paxos) provide strongly consistent replicated lo
 - State trade-offs explicitly: "I'm choosing eventual consistency for likes because a stale count is acceptable, but strong consistency for balances."
 - Go deep on one hard part instead of shallow on everything.
 - Mention failure modes and how the system degrades gracefully.
+
+## Interview Q&A
+
+- **Explain the CAP theorem.** During a network partition a distributed system must choose between consistency (every read sees the latest write) and availability (every request gets a response).
+- **What is consistent hashing and why is it useful?** Keys and nodes are placed on a hash ring; each key goes to the next node clockwise. Adding or removing a node moves only ~1/N of the keys, unlike modulo hashing.
+- **Cache-aside vs write-through caching?** Cache-aside: the app reads the cache and fills it from the DB on a miss. Write-through: writes go to the cache and DB together, keeping them consistent at the cost of slower writes.
+- **Why should message consumers be idempotent?** Most queues deliver at-least-once, so a message can arrive twice; idempotent processing (e.g. via idempotency keys) makes duplicates harmless.
+- **Vertical vs horizontal scaling?** Vertical: a bigger machine — simple but limited and a single point of failure. Horizontal: more machines — requires stateless services and load balancing but scales much further.

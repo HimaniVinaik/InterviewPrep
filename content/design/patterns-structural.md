@@ -265,3 +265,11 @@ Cost: one heap allocation and one indirection per object.
 - "Two independent dimensions of variation" → **Bridge**.
 - "Millions of similar objects" → **Flyweight**.
 - "Header changes force rebuilding everything / need stable ABI" → **PImpl**.
+
+## Interview Q&A
+
+- **Adapter vs Decorator vs Proxy?** Adapter converts one interface into another; Decorator keeps the same interface and adds behaviour by wrapping; Proxy keeps the same interface and controls access (lazy loading, permissions, remote).
+- **What is the PImpl idiom and what are its benefits?** Private members live in a forward-declared `Impl` behind a `std::unique_ptr`. It gives ABI stability, faster builds (headers don't include heavy dependencies) and stronger encapsulation.
+- **Why must a PImpl class define its destructor in the .cpp file?** `unique_ptr<Impl>` needs `Impl` to be a complete type when it deletes it; defining the destructor where `Impl` is complete avoids an incomplete-type compile error.
+- **When is the Composite pattern a good fit?** For tree structures where leaves and containers should be treated uniformly — file systems, UI widget trees, scene graphs.
+- **What problem does the Bridge pattern solve?** It separates an abstraction from its implementation so both can vary independently, avoiding an M×N explosion of subclasses (e.g. shapes × renderers).

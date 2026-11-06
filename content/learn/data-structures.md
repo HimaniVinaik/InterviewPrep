@@ -184,3 +184,11 @@ struct Fenwick {
 - Need connectivity? → union-find or BFS.
 - Need range queries with updates? → Fenwick/segment tree.
 - Memory-constrained/real-time? → fixed-size arrays, ring buffers, pools, intrusive lists.
+
+## Interview Q&A
+
+- **Separate chaining vs open addressing in hash tables?** Chaining stores colliding keys in per-bucket lists (simple, pointer-chasing). Open addressing probes for another slot in one array (cache-friendly, faster, needs a lower load factor and tombstones for deletion).
+- **How is a binary heap stored in an array?** As a complete binary tree: children of index i are 2i+1 and 2i+2, the parent is (i−1)/2. No pointers needed.
+- **When would you use a Fenwick tree?** For prefix sums (or range sums) with point updates, both in O(log n), with very little code and memory.
+- **What is an intrusive linked list and why do embedded systems use it?** The list links are stored inside the objects themselves, so adding to a list needs no allocation — ideal for RTOS ready lists and kernel data structures.
+- **What does a Bloom filter guarantee?** No false negatives (if it says "absent", the item is definitely absent) but possible false positives, using very little memory.

@@ -285,3 +285,12 @@ void bump() {
 8. Unit test the logic on your PC with CMake + GoogleTest.
 
 Good references: the MCU **reference manual** and **datasheet**, "Making Embedded Systems" (Elecia White), "The Definitive Guide to ARM Cortex-M3/M4" (Joseph Yiu), Memfault's *Interrupt* blog, FreeRTOS and Zephyr docs.
+
+## Interview Q&A
+
+- **Why must a register-polling loop use `volatile`?** Without `volatile` the compiler may read the register once and spin on a cached value forever; `volatile` forces a real read every iteration.
+- **Polling vs interrupts vs DMA?** Polling: simplest, burns CPU. Interrupts: CPU reacts per event. DMA: hardware moves data without the CPU, ideal for high-throughput streams.
+- **What happens between reset and `main()` on a Cortex-M?** The core loads the initial stack pointer and reset vector, the reset handler configures clocks, copies .data from flash to RAM, zeroes .bss, runs C++ constructors, then calls `main`.
+- **Compare UART, SPI and I2C.** UART: asynchronous, 2 wires, point-to-point. SPI: synchronous, 4+ wires, fast, full duplex, chip-select per device. I2C: synchronous, 2 open-drain wires with pull-ups, addressed, multi-device, slower.
+- **What is priority inversion and how is it solved?** A high-priority task waits on a mutex held by a low-priority task that is preempted by a medium-priority task. Solved with priority-inheritance (or priority-ceiling) mutexes.
+- **Why do you need to enable a peripheral's clock first?** Most MCUs gate peripheral clocks to save power; registers of an unclocked peripheral ignore writes, so nothing works until the clock-enable bit is set.

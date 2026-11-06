@@ -174,3 +174,11 @@ Newton's method, bisection, fast exponentiation, sieve of Eratosthenes, GCD, mat
 - Implement each from scratch once, test it, and keep it in a personal "template file".
 - Re-implement without looking after a week.
 - For each LeetCode problem, write down *which* algorithm and *why* — that's the pattern recognition you're building.
+
+## Interview Q&A
+
+- **Quicksort vs merge sort: trade-offs?** Quicksort: in place, fast in practice, O(n²) worst case, not stable. Merge sort: guaranteed O(n log n), stable, needs O(n) extra memory (O(1) for linked lists).
+- **When do you use BFS vs DFS?** BFS for shortest paths in unweighted graphs and level-by-level processing; DFS for exhaustive search, connectivity, cycle detection and topological sorting.
+- **Why can't Dijkstra handle negative edge weights?** It assumes a node's distance is final when popped; a negative edge discovered later could make it shorter. Use Bellman-Ford instead.
+- **What does the KMP prefix function store?** For each position, the length of the longest proper prefix of the pattern that is also a suffix ending there; it tells the search how far to fall back without moving the text pointer backwards.
+- **How do you justify a greedy algorithm?** With an exchange argument (swapping an optimal choice for the greedy one doesn't hurt) or a stays-ahead argument; if you can't, look for a counterexample and consider DP.

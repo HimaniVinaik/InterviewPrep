@@ -285,3 +285,11 @@ The full thread pool implementation is in *Docs → Concurrency*. Design points 
 ```
 
 Each state is a class implementing `insert_coin`, `select`, `cancel`, `dispense`; invalid actions in a state return an error. In embedded C this becomes a state×event table.
+
+## Interview Q&A
+
+- **Which data structures implement an O(1) LRU cache?** A hash map from key to list iterator plus a doubly linked list ordered by recency; `splice` moves an accessed node to the front in O(1).
+- **How does a token bucket rate limiter work?** Tokens refill at a fixed rate up to a capacity; each request takes a token or is rejected. It allows bursts up to the capacity while enforcing the average rate.
+- **Why use `steady_clock` instead of `system_clock` for rate limiting?** `steady_clock` is monotonic; `system_clock` can jump backwards or forwards (NTP adjustments, user changes), breaking interval calculations.
+- **What scheduling strategy would you use for an elevator?** SCAN/LOOK (keep moving in one direction while requests remain that way), with a dispatcher that assigns hall calls to the cheapest car — and safety states with the highest priority.
+- **How would you make a logger cheap when a level is disabled?** Check the level before formatting (atomic load + early return), or compile out low levels with `if constexpr`/macros; format only when the message will be emitted.
