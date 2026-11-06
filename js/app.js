@@ -27,20 +27,36 @@
     learn: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6"/></svg>',
     shuffle: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
     ext: '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+    course: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v15H6.5A2.5 2.5 0 0 0 4 20.5 2.5 2.5 0 0 0 6.5 23H19v-5"/><path d="M9 8h6M9 12h4"/></svg>',
+    more: '<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>',
     timer: '<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/></svg>',
     flame: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 22c4 0 7-3 7-7 0-5-4-7-5-11-2 2-3 4-3 6-1-1-2-2-2-4-2 2-4 5-4 9 0 4 3 7 7 7z"/></svg>',
   };
   const NAV = [
     ['', 'Home', 'home'], ['problems', 'Problems', 'problems'], ['docs', 'Docs', 'docs'],
-    ['design', 'Design', 'design'], ['math', 'Math', 'math'], ['learn', 'Learn', 'learn'], ['mock', 'Mock', 'timer'],
+    ['design', 'Design', 'design'], ['math', 'Math', 'math'], ['learn', 'Learn', 'learn'], ['courses', 'Courses', 'course'], ['mock', 'Mock', 'timer'],
   ];
   function buildNav() {
+    // Hide tabs whose content isn't present (e.g. Courses before any course exists)
+    for (let i = NAV.length - 1; i >= 0; --i) { const r = NAV[i][0]; if (r && !['problems', 'mock'].includes(r) && !M.sections[r]) NAV.splice(i, 1); }
     const html = NAV.map(([r, label, ic]) => `<a href="#/${r}" data-route="${r}">${ICON[ic]}<span>${label}</span></a>`).join('');
     $('#topnav').innerHTML = html;
-    $('#bottomnav').innerHTML = html;
+    // Phones: 4 main tabs + a "More" sheet for the reference sections
+    const primary = ['', 'problems', 'courses', 'mock'];
+    const link = ([r, label, ic]) => `<a href="#/${r}" data-route="${r}">${ICON[ic]}<span>${label}</span></a>`;
+    $('#bottomnav').innerHTML = NAV.filter(n => primary.includes(n[0])).map(link).join('') +
+      `<button type="button" id="moreBtn" data-route="more">${ICON.more}<span>More</span></button>`;
+    const sheet = document.createElement('div');
+    sheet.className = 'more-sheet'; sheet.id = 'moreSheet'; sheet.hidden = true;
+    sheet.innerHTML = `<div class="more-panel">${NAV.filter(n => !primary.includes(n[0])).map(link).join('')}</div>`;
+    document.body.appendChild(sheet);
+    $('#moreBtn').addEventListener('click', () => { sheet.hidden = !sheet.hidden; });
+    sheet.addEventListener('click', () => { sheet.hidden = true; });
   }
   function markNav(top) {
-    document.querySelectorAll('#topnav a, #bottomnav a').forEach(a => a.classList.toggle('active', a.dataset.route === top));
+    document.querySelectorAll('#topnav a, #bottomnav a, #moreSheet a').forEach(a => a.classList.toggle('active', a.dataset.route === top));
+    const mb = document.getElementById('moreBtn');
+    if (mb) mb.classList.toggle('active', ['docs', 'design', 'math', 'learn'].includes(top));
   }
 
   /* ---------------- Theme ---------------- */
@@ -119,12 +135,37 @@
     });
     return pat;
   }
+  // Companion file <pattern>.solutions.md: "## <slug>" blocks with "### Approach N: Name" and "### Optimal: Name".
+  // When present, these replace the approaches from .more.md and the base solution/explanation.
+  function mergeSolutions(pat, text) {
+    const bySlug = {};
+    pat.problems.forEach(p => { bySlug[p.slug] = p; });
+    text.replace(/\r\n?/g, '\n').split(/\n(?=## )/).forEach(chunk => {
+      if (!chunk.startsWith('## ')) return;
+      const nl = chunk.indexOf('\n');
+      const p = bySlug[chunk.slice(3, nl < 0 ? undefined : nl).trim()];
+      if (!p || nl < 0) return;
+      const approaches = [];
+      let optimal = null;
+      chunk.slice(nl + 1).split(/\n(?=### )/).forEach(sec => {
+        if (!sec.startsWith('### ')) return;
+        const e = sec.indexOf('\n');
+        const name = sec.slice(4, e < 0 ? undefined : e).trim();
+        const body = e < 0 ? '' : sec.slice(e + 1).trim();
+        if (/^approach/i.test(name)) approaches.push({ name: name.replace(/^approach\s*\d*\s*[:.-]?\s*/i, ''), body });
+        else if (/^optimal/i.test(name)) optimal = { name: name.replace(/^optimal\s*[:.-]?\s*/i, '') || 'Optimal', body };
+      });
+      if (approaches.length || optimal) { p.approaches = approaches; if (optimal) p.optimal = optimal; }
+    });
+    return pat;
+  }
   function loadProblems() {
     if (!problemsPromise) {
       problemsPromise = Promise.all(PATTERN_IDS.map(id =>
         fetchText('content/problems/' + id + '.md').then(t => parsePattern(id, t))
           .then(pat => fetchText('content/problems/' + id + '.more.md').then(t => mergeMore(pat, t), () => pat))
           .then(pat => fetchText('content/problems/' + id + '.complexity.md').then(t => mergeMore(pat, t), () => pat))
+          .then(pat => fetchText('content/problems/' + id + '.solutions.md').then(t => mergeSolutions(pat, t), () => pat))
           .catch(e => ({ id, intro: '⚠️ ' + e.message, problems: [] }))
       )).then(list => { const o = {}; list.forEach(p => { o[p.id] = p; }); return o; });
     }
@@ -359,14 +400,15 @@
     if (p.hint) $('#hintBtn').addEventListener('click', () => { $('#hintBox').innerHTML = `<div class="prose">${renderMd(p.hint)}</div>`; });
     $('#showAns').addEventListener('click', () => {
       const tabs = (p.approaches || []).map(a => ({ name: a.name, html: renderMd(a.body) }));
-      tabs.push({ name: 'Optimal' + (tabs.length ? '' : ' solution'), html: renderMd(p.solution) + (p.c ? '<h3>C version</h3>' + renderMd(p.c) : ''), optimal: true });
+      if (p.optimal) tabs.push({ name: 'Optimal: ' + p.optimal.name, html: renderMd(p.optimal.body), optimal: true });
+      else tabs.push({ name: 'Optimal' + (tabs.length ? '' : ' solution'), html: renderMd(p.solution) + (p.c ? '<h3>C version</h3>' + renderMd(p.c) : '') + '<h3>Explanation</h3>' + renderMd(p.explanation), optimal: true });
       const last = tabs.length - 1;
       $('#answerPanel').innerHTML = `<h2>${tabs.length > 1 ? 'Approaches (' + tabs.length + ')' : 'Solution'}</h2>
         ${tabs.length > 1 ? `<div class="seg approach-tabs" role="tablist">${tabs.map((t, i) => `<button role="tab" class="${i === last ? 'on' : ''}" data-tab="${i}">${i + 1}. ${esc(t.name)}${t.optimal ? ' ★' : ''}</button>`).join('')}</div>` : ''}
         ${tabs.map((t, i) => `<div class="prose approach-pane" data-pane="${i}" ${i === last ? '' : 'hidden'}>${t.html}</div>`).join('')}
-        ${p.walkthrough ? `<h2 style="margin-top:22px">Step-by-step walkthrough</h2><div class="prose">${renderMd(p.walkthrough)}</div>` : ''}
+        <p class="faint tab-hint">Each tab has its own code and explanation — compare them. ★ = the optimal solution.</p>
+        ${p.walkthrough ? `<h2 style="margin-top:22px">Step-by-step walkthrough (optimal solution)</h2><div class="prose">${renderMd(p.walkthrough)}</div>` : ''}
         ${p.complexity ? `<h2 style="margin-top:22px">Complexity analysis (optimal)</h2><div class="prose">${renderMd(p.complexity)}</div>` : ''}
-        <h2 style="margin-top:22px">Key insights</h2><div class="prose">${renderMd(p.explanation)}</div>
         <div class="btn-row" style="margin-top:14px"><button class="btn btn-sm" id="hideAns">Hide answer</button></div>`;
       const tabBar = $('#answerPanel .approach-tabs');
       if (tabBar) tabBar.addEventListener('click', ev => {
