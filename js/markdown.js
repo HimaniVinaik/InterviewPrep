@@ -119,7 +119,7 @@
   const LIST_RE = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
 
   function isBlockStart(l) {
-    return /^```/.test(l) || /^#{1,6}\s/.test(l) || /^>/.test(l) || /^\|/.test(l) || LIST_RE.test(l) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
+    return /^```/.test(l) || /^:::/.test(l) || /^#{1,6}\s/.test(l) || /^>/.test(l) || /^\|/.test(l) || LIST_RE.test(l) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
   }
 
   function codeBlock(code, lang) {
@@ -152,6 +152,19 @@
         while (i < lines.length && !/^\s*```\s*$/.test(lines[i])) { buf.push(lines[i].slice(Math.min(indent, lines[i].search(/\S|$/)))); i++; }
         i++;
         html += codeBlock(buf.join('\n'), lang);
+        continue;
+      }
+      // Collapsible block:  :::details Summary text  …  :::   (used for exercise solutions)
+      if ((m = l.match(/^:::\s*details\s*(.*)$/))) {
+        const buf = [];
+        let inFence = false;
+        i++;
+        while (i < lines.length && !(!inFence && /^:::\s*$/.test(lines[i]))) {
+          if (/^\s*```/.test(lines[i])) inFence = !inFence;
+          buf.push(lines[i]); i++;
+        }
+        i++;
+        html += '<details class="md-details"><summary>' + inline(m[1] || 'Show') + '</summary><div class="md-details-body">' + render(buf.join('\n')) + '</div></details>';
         continue;
       }
       if ((m = l.match(/^(#{1,6})\s+(.*?)\s*#*$/))) {

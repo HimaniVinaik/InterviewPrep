@@ -445,3 +445,11 @@ footer.site-foot { text-align: center; color: var(--text-faint); font-size: 13px
 .more-panel a { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 12px; background: var(--bg-soft); color: var(--text); font-weight: 600; }
 .more-panel a.active { color: var(--accent); background: var(--accent-soft); }
 .more-panel a:hover { text-decoration: none; }
+
+/* ---- v4: collapsible blocks in articles (exercise solutions) ---- */
+.prose details.md-details { border: 1px solid var(--border); border-radius: 12px; margin: 14px 0; background: var(--surface-2, var(--surface)); }
+.prose details.md-details > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; list-style: none; user-select: none; }
+.prose details.md-details > summary::-webkit-details-marker { display: none; }
+.prose details.md-details > summary::before { content: '▸'; display: inline-block; width: 1.2em; transition: transform .15s; color: var(--accent); }
+.prose details.md-details[open] > summary::before { transform: rotate(90deg); }
+.prose .md-details-body { padding: 0 16px 8px; border-top: 1px solid var(--border); }

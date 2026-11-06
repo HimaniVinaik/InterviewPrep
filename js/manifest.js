@@ -42,6 +42,41 @@ window.MANIFEST = {
   },
 
   sections: {
+    courses: {
+      title: 'Courses',
+      blurb: 'Structured, hands-on courses. AI & Machine Learning: from zero to building and training your own neural networks and CNNs — math made simple, every algorithm coded from scratch in Python (NumPy) and C++, then PyTorch. Each level has goals, theory, commented code, exercises with solutions, and external resources.',
+      groups: [
+        { name: 'AI Course · Part I — Start here & the math you need', items: [
+          { id: 'ai-00-start', title: 'Level 0 · Course Map & Setup', desc: 'What AI/ML/DL are, how this course maps to an MS in AI, and setting up Python, NumPy and a C++ toolchain.', focus: true },
+          { id: 'ai-01-linear-algebra', title: 'Level 1 · Vectors & Matrices (made simple)', desc: 'Vectors, dot products, matrix multiplication and shapes — the language of every neural network. NumPy + C++.' },
+          { id: 'ai-02-calculus', title: 'Level 2 · Derivatives, Gradients & the Chain Rule', desc: 'Slopes, partial derivatives, gradients, the chain rule and numerical gradient checking.' },
+          { id: 'ai-03-probability', title: 'Level 3 · Probability & Statistics for ML', desc: 'Distributions, mean/variance, Bayes, likelihood, and where cross-entropy comes from.' },
+        ] },
+        { name: 'AI Course · Part II — Classical Machine Learning', items: [
+          { id: 'ai-04-linear-regression', title: 'Level 4 · Linear Regression & Gradient Descent', desc: 'Your first learning algorithm, from scratch in Python and C++: loss, gradients, learning rate, feature scaling.', focus: true },
+          { id: 'ai-05-logistic-regression', title: 'Level 5 · Logistic Regression & Classification', desc: 'Sigmoid, cross-entropy, decision boundaries, softmax, and how to measure a classifier.' },
+          { id: 'ai-06-ml-practice', title: 'Level 6 · Generalisation & Classic Algorithms', desc: 'Overfitting, train/val/test, regularisation, cross-validation, k-NN, decision trees, k-means, PCA.' },
+        ] },
+        { name: 'AI Course · Part III — Neural Networks from Scratch', items: [
+          { id: 'ai-07-neural-networks', title: 'Level 7 · Neurons, Layers & the Forward Pass', desc: 'Perceptrons, activations, multi-layer networks, and why XOR needs a hidden layer.', focus: true },
+          { id: 'ai-08-backprop', title: 'Level 8 · Backpropagation, by Hand and in Code', desc: 'Derive backprop step by step, then train an MLP on handwritten digits in NumPy and in plain C++.', focus: true },
+          { id: 'ai-09-autograd', title: 'Level 9 · Build Your Own Autograd Engine', desc: 'Computational graphs and automatic differentiation — a tiny PyTorch-like engine in Python and C++.' },
+          { id: 'ai-10-training', title: 'Level 10 · Training Deep Networks Well', desc: 'Initialisation, SGD/momentum/Adam, batch norm, dropout, learning-rate schedules, debugging training.' },
+        ] },
+        { name: 'AI Course · Part IV — Deep Learning', items: [
+          { id: 'ai-11-cnn', title: 'Level 11 · Convolutional Neural Networks (CNNs)', desc: 'Convolution and pooling from scratch (NumPy + C++), then a CNN that reads digits.', focus: true },
+          { id: 'ai-12-pytorch', title: 'Level 12 · PyTorch in Practice (+ LibTorch C++)', desc: 'Tensors, autograd, nn.Module, DataLoader, GPU, saving models, and running them from C++.' },
+          { id: 'ai-13-sequence-models', title: 'Level 13 · Embeddings, RNNs & LSTMs', desc: 'Text as numbers, recurrent networks, vanishing gradients, LSTM/GRU, a character-level model.' },
+          { id: 'ai-14-transformers', title: 'Level 14 · Attention & Transformers', desc: 'Self-attention from scratch, the transformer block, and a tiny GPT you train yourself.' },
+        ] },
+        { name: 'AI Course · Part V — Advanced Topics & Systems', items: [
+          { id: 'ai-15-generative', title: 'Level 15 · Generative Models', desc: 'Autoencoders, VAEs, GANs and diffusion — how models learn to create.' },
+          { id: 'ai-16-reinforcement-learning', title: 'Level 16 · Reinforcement Learning', desc: 'MDPs, Q-learning, policy gradients and DQN, with a from-scratch grid world.' },
+          { id: 'ai-17-ml-systems', title: 'Level 17 · ML Systems: Speed, Deployment & Edge AI', desc: 'Profiling, quantisation, ONNX, TensorRT, CUDA kernels for ML, TinyML on microcontrollers.' },
+          { id: 'ai-18-capstone', title: 'Level 18 · Capstones, Papers & the MS Roadmap', desc: 'Capstone projects, how to read papers, the full master’s-level curriculum map and resource list.' },
+        ] },
+      ],
+    },
     docs: {
       title: 'C / C++ Docs',
       blurb: 'In-depth tutorials on the C and C++ topics interviewers actually probe. Modern C++20 (with C++23 notes) throughout.',
