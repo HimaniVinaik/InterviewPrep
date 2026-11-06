@@ -671,7 +671,46 @@ public:
 ## add-two-numbers
 
 ### Approach 1: Convert to numbers (broken — know why)
-**The idea (don't do this):** turn each list into an integer, add, turn the sum back into a list. Lists can have 100 digits, which overflows even `unsigned long long` (about 20 digits). Interviewers ask this to see if you notice.
+**The idea (don't ship it):** turn each list into an integer, add, and turn the sum back into a list. It looks simple, but lists can have 100 digits, and even `unsigned long long` only holds about 20.
+
+```cpp
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* a, ListNode* b) {
+        unsigned long long x = toNumber(a);     // overflows for more than ~19 digits!
+        unsigned long long y = toNumber(b);
+        unsigned long long sum = x + y;
+
+        // Rebuild the list, least significant digit first.
+        ListNode dummy;
+        ListNode* tail = &dummy;
+        do {
+            tail->next = new ListNode(sum % 10);
+            tail = tail->next;
+            sum /= 10;
+        } while (sum > 0);
+        return dummy.next;
+    }
+
+private:
+    unsigned long long toNumber(ListNode* node) {
+        unsigned long long value = 0;
+        unsigned long long place = 1;           // 1, 10, 100, ...
+        while (node != nullptr) {
+            value += node->val * place;
+            place *= 10;
+            node = node->next;
+        }
+        return value;
+    }
+};
+```
+
+**How it works:** correct for short lists, silently wrong once a number has more than about 19 digits.
+
+**Think of it like this:** a calculator with a 20-digit screen — fine for small sums, useless for 100-digit numbers.
+
+**Cost:** Time **O(n)**. Space **O(1)**. Interviewers ask this to see whether you spot the overflow.
 
 ### Approach 2: Recursion with a carry
 **The idea:** add the two front digits plus the carry; the rest of the answer is the sum of the rest of the lists with the new carry.

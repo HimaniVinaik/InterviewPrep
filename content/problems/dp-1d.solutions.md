@@ -832,8 +832,35 @@ public:
 
 ## coin-change
 
-### Approach 1: Greedy (wrong in general — know why)
-**The idea (don't use it):** always take the largest coin that fits. With coins `[1, 3, 4]` and amount 6, greedy picks 4 + 1 + 1 = 3 coins, but 3 + 3 = 2 coins is better. Greedy only works for special coin systems like real currency.
+### Approach 1: Greedy — largest coin first (wrong in general, know why)
+**The idea (don't use it):** always take the biggest coin that still fits. It works for real currency, but not for every coin set.
+
+```cpp
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        vector<int> sorted = coins;
+        sort(sorted.rbegin(), sorted.rend());   // biggest coin first
+        int count = 0;
+        for (int c : sorted) {
+            while (amount >= c) {
+                amount -= c;                    // take as many of this coin as fit
+                count++;
+            }
+        }
+        if (amount != 0) {
+            return -1;                          // may say "impossible" when it isn't!
+        }
+        return count;
+    }
+};
+```
+
+**How it works:** with coins `[1, 3, 4]` and amount 6 it picks 4 + 1 + 1 = 3 coins, but 3 + 3 = 2 coins is better. With `[2, 5]` and amount 6 it takes 5, gets stuck at 1 and returns −1, although 2 + 2 + 2 works.
+
+**Think of it like this:** grabbing the biggest bill from your wallet first — fine with euros, wrong with oddly sized coins.
+
+**Cost:** Time **O(k log k + amount)**. Space **O(k)**. Shown so you can explain why DP is needed.
 
 ### Approach 2: Memoised recursion (top-down)
 **The idea:** `fewest(a)` = fewest coins for amount `a` = 1 + the best `fewest(a − c)` over all coins c.
