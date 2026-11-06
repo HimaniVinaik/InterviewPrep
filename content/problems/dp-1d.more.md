@@ -1,69 +1,5 @@
 ## climbing-stairs
 
-### Approach 1: Plain recursion
-```cpp
-class Solution {
-public:
-    int climbStairs(int n) {
-        if (n <= 1) return 1;
-        return climbStairs(n - 1) + climbStairs(n - 2);     // last step was 1 or 2
-    }
-};
-```
-
-**Time:** O(φⁿ) ≈ O(1.618ⁿ) · **Space:** O(n). The recursion tree recomputes the same subproblems over and over — TLE for n = 45.
-
-### Approach 2: Memoisation (top-down DP)
-```cpp
-class Solution {
-    vector<int> memo;
-    int ways(int n) {
-        if (n <= 1) return 1;
-        if (memo[n]) return memo[n];
-        return memo[n] = ways(n - 1) + ways(n - 2);
-    }
-public:
-    int climbStairs(int n) { memo.assign(n + 1, 0); return ways(n); }
-};
-```
-
-**Time:** O(n) · **Space:** O(n). Each subproblem solved once.
-
-### Approach 3: Tabulation (bottom-up array)
-```cpp
-class Solution {
-public:
-    int climbStairs(int n) {
-        vector<int> dp(n + 1);
-        dp[0] = dp[1] = 1;
-        for (int i = 2; i <= n; ++i) dp[i] = dp[i - 1] + dp[i - 2];
-        return dp[n];
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n). No recursion; the Optimal version keeps only the last two values.
-
-### Approach 4: Matrix exponentiation
-```cpp
-class Solution {
-    using M = array<array<long long, 2>, 2>;
-    static M mul(const M& a, const M& b) {
-        M c{};
-        for (int i = 0; i < 2; ++i) for (int j = 0; j < 2; ++j) for (int k = 0; k < 2; ++k) c[i][j] += a[i][k] * b[k][j];
-        return c;
-    }
-public:
-    int climbStairs(int n) {
-        M r{{{1, 0}, {0, 1}}}, b{{{1, 1}, {1, 0}}};       // [[1,1],[1,0]]^n gives Fibonacci
-        for (int e = n; e; e >>= 1) { if (e & 1) r = mul(r, b); b = mul(b, b); }
-        return (int)r[0][0];
-    }
-};
-```
-
-**Time:** O(log n) · **Space:** O(1). Same square-and-multiply as Pow(x, n), applied to matrices.
-
 ### Walkthrough
 **Goal:** count step sequences of 1s and 2s that sum to n.
 
@@ -84,41 +20,6 @@ public:
 The DP progression shown here (recursion → memo → table → O(1) space) is the template for every DP problem in this section.
 
 ## min-cost-climbing-stairs
-
-### Approach 1: Memoised recursion
-```cpp
-class Solution {
-    vector<int> memo;
-    int f(const vector<int>& c, int i) {                // min cost to stand on i (paying c[i])
-        if (i < 0) return 0;
-        if (i < 2) return c[i];
-        if (memo[i] >= 0) return memo[i];
-        return memo[i] = c[i] + min(f(c, i - 1), f(c, i - 2));
-    }
-public:
-    int minCostClimbingStairs(vector<int>& cost) {
-        int n = cost.size();
-        memo.assign(n, -1);
-        return min(f(cost, n - 1), f(cost, n - 2));     // top is reached from n-1 or n-2
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n).
-
-### Approach 2: In-place tabulation
-```cpp
-class Solution {
-public:
-    int minCostClimbingStairs(vector<int>& cost) {
-        int n = cost.size();
-        for (int i = 2; i < n; ++i) cost[i] += min(cost[i - 1], cost[i - 2]);   // cost[i] = cheapest to stand on i
-        return min(cost[n - 1], cost[n - 2]);
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(1) extra (reuses the input). A different but equivalent state definition.
 
 ### Walkthrough
 **Goal:** cheapest way to get past the last stair.
@@ -141,40 +42,6 @@ Start on step 1, pay 15, jump two to the top.
 
 ## house-robber
 
-### Approach 1: Memoised recursion
-```cpp
-class Solution {
-    vector<int> memo;
-    int best(const vector<int>& a, int i) {            // best loot from houses 0..i
-        if (i < 0) return 0;
-        if (memo[i] >= 0) return memo[i];
-        return memo[i] = max(best(a, i - 1), best(a, i - 2) + a[i]);   // skip i, or rob i
-    }
-public:
-    int rob(vector<int>& nums) { memo.assign(nums.size(), -1); return best(nums, nums.size() - 1); }
-};
-```
-
-**Time:** O(n) · **Space:** O(n).
-
-### Approach 2: Two-state DP (robbed / not robbed)
-```cpp
-class Solution {
-public:
-    int rob(vector<int>& nums) {
-        int robbed = 0, skipped = 0;          // best so far if the previous house was robbed / not
-        for (int x : nums) {
-            int r = skipped + x;              // can only rob x if the previous was skipped
-            int s = max(robbed, skipped);
-            robbed = r; skipped = s;
-        }
-        return max(robbed, skipped);
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(1). Explicit states generalise well (state-machine DP, like the stock problems).
-
 ### Walkthrough
 **Goal:** max sum of non-adjacent elements.
 
@@ -196,47 +63,6 @@ Rob houses 0, 2, 4: 2 + 9 + 1 = 12.
 
 ## house-robber-ii
 
-### Approach 1: Memoised recursion with a "took first" flag
-```cpp
-class Solution {
-    int n;
-    map<pair<int, bool>, int> memo;
-    int best(const vector<int>& a, int i, bool tookFirst) {
-        if (i >= n) return 0;
-        if (i == n - 1 && tookFirst) return 0;               // last house is adjacent to the first
-        auto key = make_pair(i, tookFirst);
-        if (auto it = memo.find(key); it != memo.end()) return it->second;
-        int skip = best(a, i + 1, tookFirst);
-        int take = a[i] + best(a, i + 2, tookFirst || i == 0);
-        return memo[key] = max(skip, take);
-    }
-public:
-    int rob(vector<int>& nums) { n = nums.size(); if (n == 1) return nums[0]; return best(nums, 0, false); }
-};
-```
-
-**Time:** O(n log n) (map) · **Space:** O(n). Encodes the circular constraint as extra state.
-
-### Approach 2: Two linear passes via iterators
-```cpp
-class Solution {
-    template <class It>
-    static int line(It b, It e) {
-        int p2 = 0, p1 = 0;
-        for (; b != e; ++b) { int c = max(p1, p2 + *b); p2 = p1; p1 = c; }
-        return p1;
-    }
-public:
-    int rob(vector<int>& nums) {
-        if (nums.size() == 1) return nums[0];
-        return max(line(nums.begin(), nums.end() - 1),   // exclude last
-                   line(nums.begin() + 1, nums.end()));  // exclude first
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(1). Same as Optimal, written generically with iterators.
-
 ### Walkthrough
 **Goal:** House Robber on a circle — houses 0 and n−1 are neighbours.
 
@@ -254,67 +80,6 @@ public:
 Answer **3** (robbing houses 0 and 2 = 4 is illegal: they're adjacent on the circle).
 
 ## longest-palindromic-substring
-
-### Approach 1: Brute force — check every substring
-```cpp
-class Solution {
-public:
-    string longestPalindrome(string s) {
-        int n = s.size(), bestL = 0, bestLen = 1;
-        for (int i = 0; i < n; ++i)
-            for (int j = i + bestLen; j < n; ++j) {          // only longer candidates
-                int l = i, r = j;
-                while (l < r && s[l] == s[r]) { ++l; --r; }
-                if (l >= r) { bestL = i; bestLen = j - i + 1; }
-            }
-        return s.substr(bestL, bestLen);
-    }
-};
-```
-
-**Time:** O(n³) · **Space:** O(1).
-
-### Approach 2: DP table
-```cpp
-class Solution {
-public:
-    string longestPalindrome(string s) {
-        int n = s.size(), bestL = 0, bestLen = 1;
-        vector<vector<bool>> dp(n, vector<bool>(n, false));   // dp[i][j]: s[i..j] is a palindrome
-        for (int i = n - 1; i >= 0; --i)
-            for (int j = i; j < n; ++j) {
-                dp[i][j] = s[i] == s[j] && (j - i < 3 || dp[i + 1][j - 1]);
-                if (dp[i][j] && j - i + 1 > bestLen) { bestL = i; bestLen = j - i + 1; }
-            }
-        return s.substr(bestL, bestLen);
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(n²). `i` runs backwards so `dp[i+1][j−1]` is already computed.
-
-### Approach 3: Manacher's algorithm
-```cpp
-class Solution {
-public:
-    string longestPalindrome(string s) {
-        string t = "^#";                                 // transform: a b -> ^#a#b#$
-        for (char c : s) { t += c; t += '#'; }
-        t += '$';
-        int n = t.size(), center = 0, right = 0;
-        vector<int> p(n, 0);                             // p[i] = palindrome radius at i in t
-        for (int i = 1; i < n - 1; ++i) {
-            if (i < right) p[i] = min(right - i, p[2 * center - i]);   // reuse the mirror
-            while (t[i + p[i] + 1] == t[i - p[i] - 1]) ++p[i];          // expand
-            if (i + p[i] > right) { center = i; right = i + p[i]; }
-        }
-        int best = max_element(p.begin(), p.end()) - p.begin();
-        return s.substr((best - p[best]) / 2, p[best]);
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n). Rarely required to code, but naming it and explaining the mirror trick earns points.
 
 ### Walkthrough
 **Goal:** longest palindrome by expanding around every possible centre.
@@ -337,44 +102,6 @@ Even centres all have length 0 here. Answer **"bab"** (or "aba").
 
 ## palindromic-substrings
 
-### Approach 1: Brute force check of all substrings
-```cpp
-class Solution {
-public:
-    int countSubstrings(string s) {
-        int n = s.size(), count = 0;
-        for (int i = 0; i < n; ++i)
-            for (int j = i; j < n; ++j) {
-                int l = i, r = j;
-                while (l < r && s[l] == s[r]) { ++l; --r; }
-                count += l >= r;
-            }
-        return count;
-    }
-};
-```
-
-**Time:** O(n³) · **Space:** O(1).
-
-### Approach 2: DP table
-```cpp
-class Solution {
-public:
-    int countSubstrings(string s) {
-        int n = s.size(), count = 0;
-        vector<vector<bool>> dp(n, vector<bool>(n, false));
-        for (int i = n - 1; i >= 0; --i)
-            for (int j = i; j < n; ++j) {
-                dp[i][j] = s[i] == s[j] && (j - i < 3 || dp[i + 1][j - 1]);
-                count += dp[i][j];
-            }
-        return count;
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(n²). The same table answers many palindrome queries (e.g. Palindrome Partitioning).
-
 ### Walkthrough
 **Goal:** count all palindromic substrings (by position).
 
@@ -392,48 +119,6 @@ public:
 | a (2) | "a" | **6** |
 
 ## decode-ways
-
-### Approach 1: Memoised recursion
-```cpp
-class Solution {
-    vector<int> memo;
-    int ways(const string& s, int i) {               // ways to decode s[i..]
-        if (i == (int)s.size()) return 1;
-        if (s[i] == '0') return 0;                   // nothing starts with 0
-        if (memo[i] >= 0) return memo[i];
-        int r = ways(s, i + 1);                      // take one digit
-        if (i + 1 < (int)s.size() && (s[i] == '1' || (s[i] == '2' && s[i + 1] <= '6')))
-            r += ways(s, i + 2);                     // take two digits (10..26)
-        return memo[i] = r;
-    }
-public:
-    int numDecodings(string s) { memo.assign(s.size(), -1); return ways(s, 0); }
-};
-```
-
-**Time:** O(n) · **Space:** O(n). The suffix formulation is often easier to derive.
-
-### Approach 2: Tabulation array
-```cpp
-class Solution {
-public:
-    int numDecodings(string s) {
-        int n = s.size();
-        vector<int> dp(n + 1, 0);                    // dp[i]: ways to decode the first i chars
-        dp[0] = 1;
-        for (int i = 1; i <= n; ++i) {
-            if (s[i - 1] != '0') dp[i] += dp[i - 1];
-            if (i >= 2) {
-                int two = stoi(s.substr(i - 2, 2));
-                if (two >= 10 && two <= 26) dp[i] += dp[i - 2];
-            }
-        }
-        return dp[n];
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(n).
 
 ### Walkthrough
 **Goal:** count decodings where `1..26` map to letters.
@@ -456,56 +141,6 @@ Decodings: "BZ" (2,26), "VF" (22,6), "BBF" (2,2,6). With `"06"`: dp[1] = 0 (lead
 
 ## coin-change
 
-### Approach 1: Memoised recursion (top-down)
-```cpp
-class Solution {
-    vector<int> memo;                                 // -2 = unknown, -1 = impossible
-    int f(const vector<int>& coins, int amt) {
-        if (amt == 0) return 0;
-        if (amt < 0) return -1;
-        if (memo[amt] != -2) return memo[amt];
-        int best = INT_MAX;
-        for (int c : coins) {
-            int sub = f(coins, amt - c);
-            if (sub >= 0) best = min(best, sub + 1);
-        }
-        return memo[amt] = best == INT_MAX ? -1 : best;
-    }
-public:
-    int coinChange(vector<int>& coins, int amount) { memo.assign(amount + 1, -2); return f(coins, amount); }
-};
-```
-
-**Time:** O(amount × coins) · **Space:** O(amount) + recursion depth up to `amount` (10⁴ frames).
-
-### Approach 2: BFS over amounts
-```cpp
-class Solution {
-public:
-    int coinChange(vector<int>& coins, int amount) {
-        if (amount == 0) return 0;
-        vector<bool> seen(amount + 1, false);
-        queue<int> q; q.push(0); seen[0] = true;
-        for (int steps = 1; !q.empty(); ++steps) {
-            for (int sz = q.size(); sz > 0; --sz) {
-                int cur = q.front(); q.pop();
-                for (int c : coins) {
-                    long long nxt = (long long)cur + c;
-                    if (nxt == amount) return steps;           // fewest coins = BFS depth
-                    if (nxt < amount && !seen[nxt]) { seen[nxt] = true; q.push((int)nxt); }
-                }
-            }
-        }
-        return -1;
-    }
-};
-```
-
-**Time:** O(amount × coins) · **Space:** O(amount). "Fewest coins" is a shortest path in a graph whose nodes are amounts.
-
-### Approach 3: Greedy (wrong in general — know why)
-Taking the largest coin first works for "canonical" coin systems like `{1, 5, 10, 25}` but fails for `{1, 3, 4}` with amount 6: greedy gives 4+1+1 (3 coins), optimal is 3+3 (2 coins). Always justify greedy or use DP.
-
 ### Walkthrough
 **Goal:** minimum coins to make `amount` (unlimited coins).
 
@@ -526,42 +161,6 @@ Taking the largest coin first works for "canonical" coin systems like `{1, 5, 10
 | 11 | 1 → 3, 2 → 4, 5 → 3 | **3** |
 
 ## maximum-product-subarray
-
-### Approach 1: Brute force
-```cpp
-class Solution {
-public:
-    int maxProduct(vector<int>& nums) {
-        int best = INT_MIN, n = nums.size();
-        for (int i = 0; i < n; ++i) {
-            long long p = 1;
-            for (int j = i; j < n; ++j) { p *= nums[j]; best = max<long long>(best, p); }
-        }
-        return best;
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(1). The `long long` accumulator gives headroom; the problem guarantees every subarray product fits in 32 bits.
-
-### Approach 2: Prefix and suffix products
-```cpp
-class Solution {
-public:
-    int maxProduct(vector<int>& nums) {
-        int n = nums.size();
-        double pre = 1, suf = 1, best = nums[0];
-        for (int i = 0; i < n; ++i) {
-            pre = (pre == 0 ? 1 : pre) * nums[i];            // restart after a zero
-            suf = (suf == 0 ? 1 : suf) * nums[n - 1 - i];
-            best = max({best, pre, suf});
-        }
-        return (int)best;
-    }
-};
-```
-
-**Time:** O(n) · **Space:** O(1). Insight: with an odd number of negatives, the best product drops either the prefix up to the first negative or the suffix after the last one — so scanning from both ends covers it.
 
 ### Walkthrough
 **Goal:** max product of a contiguous subarray; negatives can flip a small product into a large one.
@@ -585,47 +184,6 @@ The whole array: 2·3·(−2)·4·(−1) = 48.
 
 ## word-break
 
-### Approach 1: Plain recursion (exponential)
-```cpp
-class Solution {
-    bool go(const string& s, int i, const unordered_set<string>& dict) {
-        if (i == (int)s.size()) return true;
-        for (int j = i + 1; j <= (int)s.size(); ++j)
-            if (dict.count(s.substr(i, j - i)) && go(s, j, dict)) return true;
-        return false;
-    }
-public:
-    bool wordBreak(string s, vector<string>& wordDict) {
-        unordered_set<string> dict(wordDict.begin(), wordDict.end());
-        return go(s, 0, dict);
-    }
-};
-```
-
-**Time:** O(2ⁿ) worst (e.g. `"aaaa…ab"` with dict `{a, aa, aaa}`) · **Space:** O(n).
-
-### Approach 2: BFS over start indices
-```cpp
-class Solution {
-public:
-    bool wordBreak(string s, vector<string>& wordDict) {
-        unordered_set<string> dict(wordDict.begin(), wordDict.end());
-        int n = s.size();
-        vector<bool> seen(n + 1, false);
-        queue<int> q; q.push(0); seen[0] = true;
-        while (!q.empty()) {
-            int i = q.front(); q.pop();
-            if (i == n) return true;
-            for (int j = i + 1; j <= n; ++j)
-                if (!seen[j] && dict.count(s.substr(i, j - i))) { seen[j] = true; q.push(j); }
-        }
-        return false;
-    }
-};
-```
-
-**Time:** O(n³) with substring hashing · **Space:** O(n). Memoising visited start positions is what fixes the exponential blow-up.
-
 ### Walkthrough
 **Goal:** can `s` be split into dictionary words?
 
@@ -644,39 +202,6 @@ public:
 All other `dp[i]` are false. Answer **true**.
 
 ## longest-increasing-subsequence
-
-### Approach 1: Plain recursion (take / skip)
-```cpp
-class Solution {
-    int go(const vector<int>& a, int i, int prev) {           // prev = index of last taken, -1 none
-        if (i == (int)a.size()) return 0;
-        int skip = go(a, i + 1, prev);
-        int take = (prev < 0 || a[i] > a[prev]) ? 1 + go(a, i + 1, i) : 0;
-        return max(skip, take);
-    }
-public:
-    int lengthOfLIS(vector<int>& nums) { return go(nums, 0, -1); }
-};
-```
-
-**Time:** O(2ⁿ) · **Space:** O(n). Memoising on `(i, prev)` gives O(n²).
-
-### Approach 2: O(n²) DP
-```cpp
-class Solution {
-public:
-    int lengthOfLIS(vector<int>& nums) {
-        int n = nums.size();
-        vector<int> dp(n, 1);                        // dp[i]: LIS ending exactly at i
-        for (int i = 0; i < n; ++i)
-            for (int j = 0; j < i; ++j)
-                if (nums[j] < nums[i]) dp[i] = max(dp[i], dp[j] + 1);
-        return *ranges::max_element(dp);
-    }
-};
-```
-
-**Time:** O(n²) · **Space:** O(n). Easy to extend to *reconstruct* the subsequence (store the predecessor `j`).
 
 ### Walkthrough
 **Goal:** length of the longest strictly increasing subsequence in O(n log n).
@@ -703,67 +228,6 @@ public:
 Answer **4** (e.g. 2, 3, 7, 18).
 
 ## partition-equal-subset-sum
-
-### Approach 1: Memoised recursion (take / skip)
-```cpp
-class Solution {
-    vector<vector<int>> memo;                          // -1 unknown
-    bool can(const vector<int>& a, int i, int rem) {
-        if (rem == 0) return true;
-        if (i == (int)a.size() || rem < 0) return false;
-        int& m = memo[i][rem];
-        if (m != -1) return m;
-        return m = can(a, i + 1, rem - a[i]) || can(a, i + 1, rem);
-    }
-public:
-    bool canPartition(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        if (total % 2) return false;
-        memo.assign(nums.size(), vector<int>(total / 2 + 1, -1));
-        return can(nums, 0, total / 2);
-    }
-};
-```
-
-**Time:** O(n · sum) · **Space:** O(n · sum).
-
-### Approach 2: Bitset of reachable sums
-```cpp
-class Solution {
-public:
-    bool canPartition(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        if (total % 2) return false;
-        bitset<10001> reach;                   // bit s = some subset sums to s (max total/2 = 10000)
-        reach[0] = 1;
-        for (int x : nums) reach |= reach << x;     // each existing sum s also gives s + x
-        return reach[total / 2];
-    }
-};
-```
-
-**Time:** O(n · sum / 64) · **Space:** O(sum) bits. Shifting a bitset processes 64 sums per machine instruction — a beautiful trick.
-
-### Approach 3: Set of reachable sums
-```cpp
-class Solution {
-public:
-    bool canPartition(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        if (total % 2) return false;
-        unordered_set<int> sums{0};
-        for (int x : nums) {
-            vector<int> add;
-            for (int s : sums) if (s + x <= total / 2) add.push_back(s + x);
-            sums.insert(add.begin(), add.end());
-            if (sums.count(total / 2)) return true;
-        }
-        return false;
-    }
-};
-```
-
-**Time:** O(n · sum) · **Space:** O(sum). The most intuitive formulation.
 
 ### Walkthrough
 **Goal:** a subset summing to exactly half the total (0/1 knapsack).
