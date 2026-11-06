@@ -382,9 +382,12 @@ int main() {
 ```python
 import numpy as np
 rng = np.random.default_rng(0)
-X = rng.normal(size=(500, 20)); w_true = np.zeros(20); w_true[[2, 7, 11]] = [3.0, -2.0, 1.5]
+X = rng.normal(size=(500, 20))
+w_true = np.zeros(20)
+w_true[[2, 7, 11]] = [3.0, -2.0, 1.5]
 y = X @ w_true + rng.normal(0, 0.1, 500)
-w = np.zeros(20); lam = 0.05
+w = np.zeros(20)
+lam = 0.05
 for _ in range(3000):
     g = 2 * X.T @ (X @ w - y) / len(y) + lam * np.sign(w)
     w -= 0.01 * g

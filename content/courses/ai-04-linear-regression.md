@@ -398,9 +398,11 @@ But too many polynomial features lets the model fit the noise — **overfitting*
 import numpy as np
 rng = np.random.default_rng(1)
 n, d = 10_000, 5
-X = rng.normal(size=(n, d)); true_w = rng.normal(size=d)
+X = rng.normal(size=(n, d))
+true_w = rng.normal(size=d)
 y = X @ true_w + 0.5 + rng.normal(0, 0.1, n)
-idx = rng.permutation(n); tr, va = idx[:9000], idx[9000:]
+idx = rng.permutation(n)
+tr, va = idx[:9000], idx[9000:]
 w, b = np.zeros(d), 0.0
 best, bad = float('inf'), 0
 for epoch in range(100):
@@ -408,14 +410,16 @@ for epoch in range(100):
     for s in range(0, len(order), 64):
         bt = order[s:s+64]
         e = X[bt] @ w + b - y[bt]
-        w -= 0.05 * 2 * X[bt].T @ e / len(bt); b -= 0.05 * 2 * e.mean()
+        w -= 0.05 * 2 * X[bt].T @ e / len(bt)
+        b -= 0.05 * 2 * e.mean()
     val = np.mean((X[va] @ w + b - y[va]) ** 2)
     if val < best - 1e-6:
         best, bad = val, 0
     else:
         bad += 1
         if bad == 3:
-            print("stopped at epoch", epoch); break
+            print("stopped at epoch", epoch)
+            break
 ```
 4. ∂MAE/∂w = (1/n) Σ sign(ŷᵢ − yᵢ) · xᵢ. Every example pushes with the same strength regardless of how big its error is, so a few huge outliers can't dominate the fit — MAE is more **robust**. (The Huber loss blends both: MSE for small errors, MAE for big ones.)
 5. SS_res = Σ (yᵢ − ŷᵢ)², SS_tot = Σ (yᵢ − ȳ)². With noise std 0.1 the target variance is ≈ 4.4 and the error variance ≈ 0.01, so R² ≈ 1 − 0.01/4.4 ≈ 0.998.

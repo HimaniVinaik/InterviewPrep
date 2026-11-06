@@ -570,20 +570,28 @@ With `-O3 -march=native`, each epoch on real MNIST takes a few seconds and the n
 import numpy as np
 class Sigmoid:
     def forward(self, X):
-        self.out = 1 / (1 + np.exp(-X)); return self.out
+        self.out = 1 / (1 + np.exp(-X))
+        return self.out
     def backward(self, dOut):
         return dOut * self.out * (1 - self.out)
-    def params(self): return []
+    def params(self):
+        return []
 class Tanh:
     def forward(self, X):
-        self.out = np.tanh(X); return self.out
+        self.out = np.tanh(X)
+        return self.out
     def backward(self, dOut):
         return dOut * (1 - self.out ** 2)
-    def params(self): return []
+    def params(self):
+        return []
 # quick check on f(x) = sum(layer(x) * c)
-rng = np.random.default_rng(0); x = rng.normal(size=5); c = rng.normal(size=5)
+rng = np.random.default_rng(0)
+x = rng.normal(size=5)
+c = rng.normal(size=5)
 for L in (Sigmoid(), Tanh()):
-    L.forward(x); g = L.backward(c); h = 1e-6
+    L.forward(x)
+    g = L.backward(c)
+    h = 1e-6
     num = np.array([(np.sum(L.forward(x + h*e) * c) - np.sum(L.forward(x - h*e) * c)) / (2*h) for e in np.eye(5)])
     print(type(L).__name__, np.allclose(g, num))   # True True
 ```

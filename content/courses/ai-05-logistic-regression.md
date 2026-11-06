@@ -313,12 +313,17 @@ import numpy as np
 rng = np.random.default_rng(0)
 r = np.concatenate([rng.uniform(0, 1, 200), rng.uniform(2, 3, 200)])
 a = rng.uniform(0, 2 * np.pi, 400)
-X = np.column_stack([r * np.cos(a), r * np.sin(a)]); t = np.repeat([0, 1], 200)
+X = np.column_stack([r * np.cos(a), r * np.sin(a)])
+t = np.repeat([0, 1], 200)
 def fit(F):
-    F = (F - F.mean(0)) / F.std(0); w = np.zeros(F.shape[1]); b = 0.0
+    F = (F - F.mean(0)) / F.std(0)
+    w = np.zeros(F.shape[1])
+    b = 0.0
     for _ in range(2000):
-        p = 1 / (1 + np.exp(-(F @ w + b))); g = p - t
-        w -= 0.5 * F.T @ g / len(t); b -= 0.5 * g.mean()
+        p = 1 / (1 + np.exp(-(F @ w + b)))
+        g = p - t
+        w -= 0.5 * F.T @ g / len(t)
+        b -= 0.5 * g.mean()
     return np.mean(((F @ w + b) >= 0) == t)
 print("raw features:", fit(X))                                      # ~0.5
 print("with r^2:   ", fit(np.column_stack([X, (X**2).sum(1)])))     # 1.0

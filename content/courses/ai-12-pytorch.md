@@ -478,7 +478,8 @@ Look how closely it matches the Python: `register_module` ≈ assigning sub-modu
 ```python
 import torch
 torch.manual_seed(0)
-X = torch.randn(512, 20); y = (X[:, 0] + X[:, 1] > 0).long()
+X = torch.randn(512, 20)
+y = (X[:, 0] + X[:, 1] > 0).long()
 W1 = (torch.randn(64, 20) * (2 / 20) ** 0.5).requires_grad_()
 b1 = torch.zeros(64, requires_grad=True)
 W2 = (torch.randn(2, 64) * (2 / 64) ** 0.5).requires_grad_()

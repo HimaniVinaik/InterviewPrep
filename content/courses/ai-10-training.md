@@ -445,18 +445,29 @@ assert loss.item() < 0.01
 ```python
 import numpy as np
 def layernorm(x, g, b, eps=1e-5):
-    mu = x.mean(axis=1, keepdims=True); var = x.var(axis=1, keepdims=True)
+    mu = x.mean(axis=1, keepdims=True)
+    var = x.var(axis=1, keepdims=True)
     xh = (x - mu) / np.sqrt(var + eps)
     return g * xh + b, (xh, 1 / np.sqrt(var + eps))
 def layernorm_backward(dy, g, cache):
-    xh, inv = cache; D = dy.shape[1]; dxh = dy * g
+    xh, inv = cache
+    D = dy.shape[1]
+    dxh = dy * g
     return (inv / D) * (D * dxh - dxh.sum(1, keepdims=True) - xh * (dxh * xh).sum(1, keepdims=True))
-rng = np.random.default_rng(0); x = rng.normal(size=(4, 6)); g = rng.normal(size=6); b = rng.normal(size=6); c = rng.normal(size=(4, 6))
-y, cache = layernorm(x, g, b); an = layernorm_backward(c, g, cache)
-num = np.zeros_like(x); h = 1e-6
+rng = np.random.default_rng(0)
+x = rng.normal(size=(4, 6))
+g = rng.normal(size=6)
+b = rng.normal(size=6)
+c = rng.normal(size=(4, 6))
+y, cache = layernorm(x, g, b)
+an = layernorm_backward(c, g, cache)
+num = np.zeros_like(x)
+h = 1e-6
 for i in range(4):
     for j in range(6):
-        xp, xm = x.copy(), x.copy(); xp[i, j] += h; xm[i, j] -= h
+        xp, xm = x.copy(), x.copy()
+        xp[i, j] += h
+        xm[i, j] -= h
         num[i, j] = (np.sum(c * layernorm(xp, g, b)[0]) - np.sum(c * layernorm(xm, g, b)[0])) / (2 * h)
 print(np.abs(an - num).max() < 1e-6)   # True
 ```

@@ -78,7 +78,8 @@ def relu(z):
 def leaky_relu(z, slope=0.01):
     return np.where(z > 0, z, slope * z)
 
-def gelu(z):        # the tanh approximation used by GPT-2
+def gelu(z):
+    # the tanh approximation used by GPT-2
     return 0.5 * z * (1 + np.tanh(np.sqrt(2 / np.pi) * (z + 0.044715 * z ** 3)))
 
 z = np.array([-3.0, -1.0, 0.0, 1.0, 3.0])

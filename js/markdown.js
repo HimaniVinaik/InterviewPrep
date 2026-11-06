@@ -233,7 +233,11 @@
           let k = 0; const para = [];
           while (k < it.length && it[k] !== '' && !(k > 0 && isBlockStart(it[k]))) { para.push(it[k]); k++; }
           const rest = it.slice(k).join('\n');
-          html += '<li>' + inline(para.join(' ')) + (rest.trim() ? render(rest) : '') + '</li>';
+          let first = inline(para.join(' '));
+          // Task-list items: "[ ] text" / "[x] text" become (read-only) checkboxes.
+          const task = first.match(/^\[( |x|X)\]\s+/);
+          if (task) first = '<span class="task-box' + (task[1] === ' ' ? '' : ' done') + '" aria-hidden="true"></span>' + first.slice(task[0].length);
+          html += '<li' + (task ? ' class="task-item"' : '') + '>' + first + (rest.trim() ? render(rest) : '') + '</li>';
         }
         html += '</' + tag + '>';
         continue;

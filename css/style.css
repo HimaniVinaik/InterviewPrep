@@ -453,3 +453,6 @@ footer.site-foot { text-align: center; color: var(--text-faint); font-size: 13px
 .prose details.md-details > summary::before { content: '▸'; display: inline-block; width: 1.2em; transition: transform .15s; color: var(--accent); }
 .prose details.md-details[open] > summary::before { transform: rotate(90deg); }
 .prose .md-details-body { padding: 0 16px 8px; border-top: 1px solid var(--border); }
+.prose li.task-item { list-style: none; margin-left: -1.2em; }
+.prose .task-box { display: inline-block; width: 1em; height: 1em; border: 2px solid var(--accent); border-radius: 4px; margin-right: .55em; vertical-align: -0.15em; }
+.prose .task-box.done { background: var(--accent); }

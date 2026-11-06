@@ -188,7 +188,8 @@ def f(v):
     x, y = v
     return x**2 + 3*x*y + y**3
 
-def grad_f(v):                       # the analytic gradient we derived above
+def grad_f(v):
+    # the analytic gradient we derived above
     x, y = v
     return np.array([2*x + 3*y, 3*x + 3*y**2])
 
@@ -293,8 +294,10 @@ num = np.zeros_like(W)
 h = 1e-5
 for i in range(W.shape[0]):
     for j in range(W.shape[1]):
-        Wp = W.copy(); Wp[i, j] += h
-        Wm = W.copy(); Wm[i, j] -= h
+        Wp = W.copy()
+        Wp[i, j] += h
+        Wm = W.copy()
+        Wm[i, j] -= h
         num[i, j] = (loss(Wp) - loss(Wm)) / (2 * h)
 
 print("max abs difference:", np.abs(num - dL_dW).max())
@@ -323,10 +326,14 @@ assert np.allclose(num, dL_dW, atol=1e-8)
 ```python
 import numpy as np
 f = lambda v: v[0]**2 * v[1] + np.sin(v[1])
-v = np.array([2.0, 0.0]); h = 1e-5; g = np.zeros(2)
+v = np.array([2.0, 0.0])
+h = 1e-5
+g = np.zeros(2)
 for i in range(2):
-    p = v.copy(); p[i] += h
-    m = v.copy(); m[i] -= h
+    p = v.copy()
+    p[i] += h
+    m = v.copy()
+    m[i] -= h
     g[i] = (f(p) - f(m)) / (2 * h)
 print(g)   # ≈ [0. 5.]
 ```
@@ -336,9 +343,15 @@ print(g)   # ≈ [0. 5.]
 #include <cmath>
 #include <cstdio>
 int main() {
-    auto sig = [](double z) { return 1.0 / (1.0 + std::exp(-z)); };
-    auto L = [&](double w) { double a = sig(w * 2.0); return (a - 1.0) * (a - 1.0); };
-    double w = 0.5, h = 1e-6;
+    auto sig = [](double z) {
+        return 1.0 / (1.0 + std::exp(-z));
+    };
+    auto L = [&](double w) {
+        double a = sig(w * 2.0);
+        return (a - 1.0) * (a - 1.0);
+    };
+    double w = 0.5;
+    double h = 1e-6;
     double a = sig(w * 2.0);
     double analytic = 2 * (a - 1.0) * a * (1 - a) * 2.0;
     double numeric = (L(w + h) - L(w - h)) / (2 * h);

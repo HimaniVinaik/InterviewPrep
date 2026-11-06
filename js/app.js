@@ -198,8 +198,11 @@
     const P = await loadProblems();
     const probs = PATTERN_IDS.flatMap(id => P[id].problems);
     const solvedN = probs.filter(p => solved[p.key]).length;
-    const arts = allArticles();
+    const allArts = allArticles();
+    const arts = allArts.filter(a => a.section !== 'courses');          // guides
+    const levels = allArts.filter(a => a.section === 'courses');        // course levels
     const readN = arts.filter(a => readMap[a.section + '/' + a.id]).length;
+    const levelsN = levels.filter(a => readMap[a.section + '/' + a.id]).length;
     const focus = arts.filter(a => a.focus);
     // next problem in roadmap order
     const next = probs.find(p => !solved[p.key]);
@@ -211,6 +214,7 @@
       ['math', 'Math', 'Complexity, combinatorics, probability, number theory, floats, fixed-point, linear algebra.'],
       ['learn', 'Learn', 'Algorithms, data structures, debugging, coding standards, embedded, OS, CUDA, AI, Python.'],
     ];
+    if (levels.length) tiles.push(['courses', 'Courses', `AI & Machine Learning from zero: ${levels.length} hands-on levels — maths, NumPy, C++, PyTorch, CNNs, transformers.`]);
     app.innerHTML = `
       <section class="hero">
         <h1>Forge your interview skills.</h1>
@@ -226,13 +230,14 @@
         <div class="card stat"><div class="num">${solvedN}<span class="faint" style="font-size:16px">/${probs.length}</span></div><div class="lbl">Problems solved</div>${bar(solvedN, probs.length)}</div>
         <div class="card stat"><div class="num">${readN}<span class="faint" style="font-size:16px">/${arts.length}</span></div><div class="lbl">Guides completed</div>${bar(readN, arts.length)}</div>
         <div class="card stat"><div class="num">${PATTERN_IDS.filter(id => P[id].problems.length && P[id].problems.every(p => solved[p.key])).length}<span class="faint" style="font-size:16px">/${PATTERN_IDS.length}</span></div><div class="lbl">Patterns mastered</div></div>
+        ${levels.length ? `<div class="card stat"><div class="num">${levelsN}<span class="faint" style="font-size:16px">/${levels.length}</span></div><div class="lbl">AI course levels done</div>${bar(levelsN, levels.length)}</div>` : ''}
         <div class="card stat"><div class="num">${starredList.length}</div><div class="lbl">Starred for review</div></div>
       </div>
       <h2 class="section-title">🎯 Focus areas</h2>
       <p class="muted" style="margin-top:-6px">Topics you flagged as weak — work through these first.</p>
       <div class="chip-list">${focus.map(a => `<a class="chip weak ${readMap[a.section + '/' + a.id] ? 'done' : ''}" href="#/${a.section}/${a.id}">${readMap[a.section + '/' + a.id] ? '✓ ' : ''}${esc(a.title)}</a>`).join('')}</div>
       <h2 class="section-title">Sections</h2>
-      <div class="grid grid-3">${tiles.map(([r, t, d]) => `<a class="card tile" href="#/${r}"><span class="tile-icon">${ICON[r]}</span><h3>${t}</h3><p>${d}</p></a>`).join('')}</div>
+      <div class="grid grid-3">${tiles.map(([r, t, d]) => `<a class="card tile" href="#/${r}"><span class="tile-icon">${ICON[r] || ICON.course}</span><h3>${t}</h3><p>${d}</p></a>`).join('')}</div>
       ${starredList.length ? `<h2 class="section-title">⭐ Review list</h2><div class="card plist">${starredList.map(problemRow).join('')}</div>` : ''}
       <h2 class="section-title">Suggested weekly plan</h2>
       <div class="card prose" style="font-size:15.5px">
@@ -587,7 +592,7 @@
         </div>
         <div class="mock-checks">
           <span class="muted">Knowledge questions from:</span>
-          ${[['docs', 'C / C++ Docs'], ['design', 'Design'], ['math', 'Math'], ['learn', 'Learn']].map(([v, l]) => `<label><input type="checkbox" class="check" data-sec="${v}" ${pr.sections.includes(v) ? 'checked' : ''}> ${l}</label>`).join('')}
+          ${[['docs', 'C / C++ Docs'], ['design', 'Design'], ['math', 'Math'], ['learn', 'Learn'], ['courses', 'Courses (AI)']].filter(([v]) => M.sections[v]).map(([v, l]) => `<label><input type="checkbox" class="check" data-sec="${v}" ${pr.sections.includes(v) ? 'checked' : ''}> ${l}</label>`).join('')}
         </div>
         <div class="mock-checks">
           <label><input type="checkbox" class="check" data-pref-bool="focusOnly" ${pr.focusOnly ? 'checked' : ''}> Only my focus topics</label>

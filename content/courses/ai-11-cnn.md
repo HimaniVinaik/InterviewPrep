@@ -245,8 +245,10 @@ Wp, Wm_ = conv.W.copy(), conv.W.copy()
 Wp[2, 1, 0, 2] += h
 Wm_[2, 1, 0, 2] -= h
 analytic_w = conv.dW[2, 1, 0, 2]
-conv.W = Wp; fp = np.sum(c * conv.forward(x))
-conv.W = Wm_; fm = np.sum(c * conv.forward(x))
+conv.W = Wp
+fp = np.sum(c * conv.forward(x))
+conv.W = Wm_
+fm = np.sum(c * conv.forward(x))
 assert abs((fp - fm) / (2 * h) - analytic_w) < 1e-5
 print("im2col conv matches the loops, and its gradients pass the check")
 ```

@@ -2,6 +2,8 @@
 
 A practical tour from classical ML to transformers and LLMs — enough to hold a solid conversation in interviews, contribute to ML infrastructure (where C++/CUDA skills are in demand), and keep learning.
 
+> **Tip:** this page is a one-page overview. For the full hands-on course — 19 levels from zero maths to building and training your own neural networks, CNNs and a tiny GPT in Python and C++ — open **Courses → AI & Machine Learning** ([start at Level 0](#/courses/ai-00-start)).
+
 ## 1. The landscape
 
 ```text

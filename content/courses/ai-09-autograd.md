@@ -190,28 +190,39 @@ class Value:
         o = o if isinstance(o, Value) else Value(o)
         out = Value(self.data + o.data, (self, o))
         def bw():
-            self.grad += out.grad; o.grad += out.grad
-        out._backward = bw; return out
+            self.grad += out.grad
+            o.grad += out.grad
+        out._backward = bw
+        return out
     def __mul__(self, o):
         o = o if isinstance(o, Value) else Value(o)
         out = Value(self.data * o.data, (self, o))
         def bw():
-            self.grad += o.data * out.grad; o.grad += self.data * out.grad
-        out._backward = bw; return out
+            self.grad += o.data * out.grad
+            o.grad += self.data * out.grad
+        out._backward = bw
+        return out
     def __pow__(self, n):
         out = Value(self.data ** n, (self,))
         def bw():
             self.grad += n * self.data ** (n - 1) * out.grad
-        out._backward = bw; return out
+        out._backward = bw
+        return out
     def tanh(self):
-        t = math.tanh(self.data); out = Value(t, (self,))
+        t = math.tanh(self.data)
+        out = Value(t, (self,))
         def bw():
             self.grad += (1 - t * t) * out.grad
-        out._backward = bw; return out
-    def __neg__(self): return self * -1
-    def __sub__(self, o): return self + (-o)
-    def __radd__(self, o): return self + o
-    def __rmul__(self, o): return self * o
+        out._backward = bw
+        return out
+    def __neg__(self):
+        return self * -1
+    def __sub__(self, o):
+        return self + (-o)
+    def __radd__(self, o):
+        return self + o
+    def __rmul__(self, o):
+        return self * o
     def backward(self):
         order, seen = [], set()
         def visit(v):
@@ -220,7 +231,8 @@ class Value:
                 for p in v._parents:
                     visit(p)
                 order.append(v)
-        visit(self); self.grad = 1.0
+        visit(self)
+        self.grad = 1.0
         for v in reversed(order):
             v._backward()
 
@@ -466,7 +478,8 @@ class Tensor:
         self._parents = parents
         self._backward = lambda: None
 
-    def matmul_T(self, W):                  # self @ W.T
+    def matmul_T(self, W):
+        # self @ W.T
         out = Tensor(self.data @ W.data.T, (self, W))
         def bw():
             self.grad += out.grad @ W.data

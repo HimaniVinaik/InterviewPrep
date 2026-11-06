@@ -200,7 +200,8 @@ print(f"final loss per char: {loss / seq:.3f}")
 # Sample from the trained RNN
 h, idx, out = np.zeros(32), stoi["h"], "h"
 for _ in range(40):
-    x = np.zeros(len(chars)); x[idx] = 1
+    x = np.zeros(len(chars))
+    x[idx] = 1
     h = np.tanh(rnn.Wxh @ x + rnn.Whh @ h + rnn.bh)
     idx = int(np.argmax(rnn.Why @ h + rnn.by))                       # greedy: most likely next char
     out += chars[idx]

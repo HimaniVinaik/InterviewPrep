@@ -340,8 +340,12 @@ struct Matrix {
     size_t rows, cols;
     std::vector<double> data;
     Matrix(size_t r, size_t c, double f = 0) : rows(r), cols(c), data(r * c, f) {}
-    double& operator()(size_t r, size_t c) { return data[r * cols + c]; }
-    double operator()(size_t r, size_t c) const { return data[r * cols + c]; }
+    double& operator()(size_t r, size_t c) {
+        return data[r * cols + c];
+    }
+    double operator()(size_t r, size_t c) const {
+        return data[r * cols + c];
+    }
 };
 Matrix add(const Matrix& A, const Matrix& B) {
     assert(A.rows == B.rows && A.cols == B.cols);
