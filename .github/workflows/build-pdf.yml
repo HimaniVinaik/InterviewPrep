@@ -1,0 +1,71 @@
+# Rebuilds the downloadable PDFs (export/*.pdf, shown on the site's "Export data" page)
+# whenever the content or the book renderer changes, and commits them back to main.
+name: Build PDF export
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/**'
+      - 'js/manifest.js'
+      - 'js/markdown.js'
+      - 'js/content.js'
+      - 'js/print.js'
+      - 'css/print.css'
+      - 'print.html'
+      - 'tools/build-pdf.js'
+      - 'tools/pdf_outline.py'
+      - '.github/workflows/build-pdf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-pdf
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install fonts, poppler and pypdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils fonts-liberation fonts-dejavu-core fonts-noto-color-emoji
+          python -m pip install pypdf==6.17.0
+
+      - name: Install Playwright + Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Build the PDFs
+        run: node tools/build-pdf.js
+
+      - name: Commit the new PDFs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add export
+          if git diff --cached --quiet; then
+            echo "PDFs unchanged"
+            exit 0
+          fi
+          git commit -m "Rebuild PDF export [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

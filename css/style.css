@@ -456,3 +456,8 @@ footer.site-foot { text-align: center; color: var(--text-faint); font-size: 13px
 .prose li.task-item { list-style: none; margin-left: -1.2em; }
 .prose .task-box { display: inline-block; width: 1em; height: 1em; border: 2px solid var(--accent); border-radius: 4px; margin-right: .55em; vertical-align: -0.15em; }
 .prose .task-box.done { background: var(--accent); }
+
+/* Export data page */
+.export-main { border-color: var(--accent); background: linear-gradient(135deg, var(--accent-soft), transparent 70%), var(--bg-elev); margin-bottom: 8px; }
+.export-here { border-color: var(--accent); }
+.export-main .btn, .card .btn-row .btn { white-space: nowrap; }

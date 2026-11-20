@@ -8,6 +8,8 @@ A static, mobile-friendly study site (dark mode included) for software / embedde
 - **Math** — complexity, discrete math, probability, number theory, binary/floats, embedded math (fixed-point, filters, PID, CRC), linear algebra, geometry, calculus for ML.
 - **Learn** — problem solving, data structures, algorithms, debugging, C++/C coding standards, testing, embedded fundamentals & Q&A, OS, computer architecture, Python, CUDA, AI/ML.
 
+- **Export data** — download the whole site as a formatted PDF book (or one PDF per section) to read offline on iPhone, iPad or computer: `#/export`, linked from the home page and every footer.
+
 Progress (solved, starred, guides completed) is stored in your browser's `localStorage`; use *Export/Import progress* in the footer to move it between devices.
 
 ## Hosting on GitHub Pages
@@ -62,3 +64,15 @@ js/markdown.js      tiny Markdown renderer + syntax highlighter (no dependencies
 js/app.js           router, views, progress, search
 content/            all study material as Markdown
 ```
+
+## PDF export
+
+The PDFs in `export/` are generated from `print.html` (which renders every problem and article with `js/print.js` + `css/print.css`) by:
+
+```bash
+node tools/build-pdf.js            # all books; or e.g. `node tools/build-pdf.js docs`
+```
+
+It needs Playwright + Chromium, poppler-utils, `pip install pypdf`, and the Liberation, DejaVu and Noto Color Emoji fonts. The build checks itself: it fails on render errors, content wider than the page, missing fonts, or any contents/bookmark entry that doesn't land on its page.
+
+You normally don't run it by hand: the **Build PDF export** GitHub Action (`.github/workflows/build-pdf.yml`) rebuilds and commits the PDFs whenever content changes on `main`.

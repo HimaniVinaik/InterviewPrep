@@ -1,0 +1,139 @@
+/* PrepForge PDF book styles (print.html). Page: 6 x 9 in — readable on a phone without zooming,
+   and still comfortable on a tablet or computer. Light theme only. */
+@page { size: 6in 9in; margin: 0.55in 0.5in 0.6in 0.5in; }
+
+:root {
+  --text: #1c1f2a;
+  --dim: #555b6e;
+  --faint: #8a90a3;
+  --border: #dcdfe8;
+  --soft: #f3f4f8;
+  --code-bg: #f5f6fa;
+  --accent: #5b3df0;
+  --easy: #0f8a43;
+  --medium: #b06f00;
+  --hard: #cc2f35;
+  --sans: "Liberation Sans", "DejaVu Sans", Arial, Helvetica, "Noto Color Emoji", sans-serif;
+  --mono: "DejaVu Sans Mono", "Liberation Mono", Menlo, Consolas, "Noto Color Emoji", monospace;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; background: #fff; color: var(--text); font: 10pt/1.45 var(--sans); }
+#book { max-width: 5in; margin: 0 auto; }
+@media screen { #book { padding: 24px 16px; } }
+.loading { color: var(--dim); }
+a { color: var(--accent); text-decoration: none; }
+
+/* Pass-1 page markers: absolutely positioned so removing them in pass 2 can't move anything. */
+.pdf-mark { position: absolute; font-size: 1px; line-height: 1px; color: #fff; white-space: nowrap; }
+
+/* ---------- Cover ---------- */
+.cover { break-after: page; min-height: 7.6in; display: flex; flex-direction: column; justify-content: center; }
+.cover-logo { width: 0.9in; height: 0.9in; border-radius: 0.2in; background: var(--accent); color: #fff; font: 700 26pt/0.9in var(--mono); text-align: center; margin-bottom: 0.3in; }
+.cover-title { font-size: 38pt; line-height: 1.05; margin: 0 0 6pt; letter-spacing: -0.5pt; }
+.cover-sub { font-size: 14pt; color: var(--dim); margin: 0 0 22pt; }
+.cover-list { margin: 0 0 22pt; padding-left: 16pt; font-size: 11pt; }
+.cover-list li { margin: 3pt 0; }
+.cover-how { font-size: 9pt; color: var(--dim); border-left: 3pt solid var(--accent); padding: 6pt 10pt; background: var(--soft); margin-bottom: 18pt; }
+.cover-meta { font-size: 8.5pt; color: var(--faint); margin: 0; }
+
+/* ---------- Contents ---------- */
+.toc { break-after: page; }
+.toc-title { font-size: 20pt; margin: 0 0 12pt; }
+.toc a { display: flex; align-items: baseline; color: var(--text); gap: 4pt; }
+.toc .t { flex: 0 1 auto; }
+.toc .lead { flex: 1 1 auto; border-bottom: 1px dotted #b8bcc9; min-width: 12pt; position: relative; top: -3pt; }
+.toc .pg { flex: 0 0 auto; min-width: 2.6em; text-align: right; font-variant-numeric: tabular-nums; color: var(--dim); }
+.toc-part { font-weight: 700; font-size: 11.5pt; margin: 12pt 0 4pt; break-after: avoid; }
+.toc-part .pg { color: var(--text); }
+.toc-group { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.6pt; color: var(--faint); margin: 8pt 0 2pt; break-after: avoid; }
+.toc-l1 { font-weight: 600; font-size: 9.5pt; margin: 3pt 0 1pt; break-inside: avoid; }
+.toc-l2 { font-size: 8.5pt; margin: 0.5pt 0 0.5pt 12pt; break-inside: avoid; }
+.toc-l2 .t { color: #343a4c; }
+.toc-diff { font-size: 6.5pt; font-weight: 700; padding: 0 3pt; border-radius: 3pt; color: #fff; vertical-align: 1pt; }
+.toc-diff.Easy { background: var(--easy); }
+.toc-diff.Medium { background: var(--medium); }
+.toc-diff.Hard { background: var(--hard); }
+
+/* ---------- Parts & chapters ---------- */
+.part { break-before: page; break-after: page; min-height: 7.6in; display: flex; align-items: center; }
+.part-kicker { font-size: 10pt; text-transform: uppercase; letter-spacing: 2pt; color: var(--accent); font-weight: 700; }
+.part h1 { font-size: 30pt; line-height: 1.1; margin: 4pt 0 10pt; }
+.part-blurb { font-size: 11pt; color: var(--dim); margin: 0; }
+.chapter, .problem { break-before: page; }
+.chapter-kicker { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1pt; color: var(--accent); font-weight: 700; margin-bottom: 2pt; }
+.chapter > h2 { font-size: 17pt; line-height: 1.2; margin: 0 0 4pt; }
+.lede { color: var(--dim); font-size: 9.5pt; margin: 0 0 10pt; }
+.group-label { display: none; }
+.pattern-guide { border: 1px solid var(--border); border-radius: 6pt; padding: 8pt 10pt; background: #fbfbfd; }
+.guide-label { font-weight: 700; font-size: 9pt; color: var(--accent); margin-bottom: 4pt; }
+
+/* ---------- Problems ---------- */
+.problem-title { font-size: 14pt; line-height: 1.25; margin: 0 0 5pt; break-after: avoid; }
+.pnum { color: var(--accent); }
+.problem-meta { display: flex; flex-wrap: wrap; gap: 4pt; margin-bottom: 8pt; }
+.diff, .chip { font-size: 7.5pt; font-weight: 700; padding: 1.5pt 6pt; border-radius: 9pt; border: 1px solid var(--border); color: var(--dim); }
+.diff.Easy { color: var(--easy); border-color: var(--easy); }
+.diff.Medium { color: var(--medium); border-color: var(--medium); }
+.diff.Hard { color: var(--hard); border-color: var(--hard); }
+.chip.link { color: var(--accent); }
+.block-title { font-size: 10.5pt; margin: 12pt 0 4pt; padding-bottom: 2pt; border-bottom: 1.5pt solid var(--accent); break-after: avoid; }
+.hint { margin: 8pt 0; padding: 6pt 9pt; background: #fff8e6; border-left: 3pt solid var(--medium); border-radius: 3pt; break-inside: avoid; }
+.hint-label { font-weight: 700; font-size: 8.5pt; color: var(--medium); }
+.approach { margin: 8pt 0 10pt; }
+.approach-title { font-size: 10pt; margin: 8pt 0 3pt; color: var(--text); break-after: avoid; }
+.approach.optimal > .approach-title { color: var(--accent); }
+
+/* ---------- Article / markdown content ---------- */
+.prose { overflow-wrap: break-word; }
+.prose p { margin: 0 0 6pt; orphans: 3; widows: 3; }
+.prose h2 { font-size: 13pt; }
+.prose h3 { font-size: 12pt; margin: 14pt 0 4pt; line-height: 1.25; break-after: avoid; }
+.prose h4 { font-size: 10.5pt; margin: 11pt 0 3pt; break-after: avoid; }
+.prose h5 { font-size: 10pt; margin: 9pt 0 3pt; break-after: avoid; }
+.prose h6 { font-size: 9.5pt; margin: 8pt 0 3pt; color: var(--dim); break-after: avoid; }
+.prose ul, .prose ol { margin: 0 0 6pt; padding-left: 15pt; }
+.prose li { margin: 1.5pt 0; }
+.prose li > p { margin: 0 0 3pt; }
+.prose hr { border: 0; border-top: 1px solid var(--border); margin: 10pt 0; }
+.prose strong { font-weight: 700; }
+.prose code { font: 0.86em var(--mono); background: #eef0f6; padding: 0 2pt; overflow-wrap: anywhere; }
+.prose blockquote { margin: 7pt 0; padding: 5pt 9pt; border-left: 3pt solid var(--accent); background: #f6f4ff; border-radius: 3pt; break-inside: avoid; }
+.prose blockquote > :last-child { margin-bottom: 0; }
+.prose blockquote.warn { border-left-color: var(--medium); background: #fff8e6; }
+.prose blockquote.danger { border-left-color: var(--hard); background: #fff0f0; }
+.prose blockquote.tip { border-left-color: var(--easy); background: #effaf3; }
+
+/* Code: wrap long lines — a PDF can't scroll sideways. */
+.codeblock { margin: 6pt 0 8pt; border: 1px solid var(--border); border-radius: 4pt; background: var(--code-bg); }
+.codeblock.keep { break-inside: avoid; }
+.code-head { font: 600 6.5pt var(--sans); text-transform: uppercase; letter-spacing: 0.6pt; color: var(--faint); padding: 2.5pt 7pt 0; }
+.code-head button { display: none; }
+.codeblock pre { margin: 0; padding: 3pt 7pt 5pt; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font: 7.6pt/1.38 var(--mono); tab-size: 4; }
+.codeblock code { font: inherit; background: none; border: 0; padding: 0; }
+/* One span per source line: wrapped continuation lines are indented under the line they belong to. */
+.codeblock .cl { display: block; }
+.tk-kw { color: #7a2fe0; font-weight: 700; }
+.tk-type { color: #005fa8; }
+.tk-str { color: #157332; }
+.tk-num { color: #a64a06; }
+.tk-com { color: #5f6b85; font-style: italic; }
+.tk-pre { color: #b5146b; }
+.tk-fn { color: #00585a; }
+
+/* Tables: shrink text, wrap cells. */
+.table-wrap { margin: 6pt 0 9pt; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 7.8pt; line-height: 1.35; }
+.prose th, .prose td { border-bottom: 0.6pt solid var(--border); padding: 2.5pt 4pt; vertical-align: top; overflow-wrap: anywhere; }
+.prose th { border-bottom: 1.2pt solid #b9bdcb; text-align: left; font-weight: 700; }
+.prose tr { break-inside: avoid; }
+.prose thead { display: table-header-group; }
+
+/* Checklists and solution blocks. */
+.prose li.task-item { list-style: none; margin-left: -12pt; padding-left: 13pt; text-indent: -13pt; }
+.task-box { display: inline-block; width: 8pt; height: 8pt; border: 1px solid var(--dim); border-radius: 2pt; margin-right: 5pt; vertical-align: -0.5pt; }
+.task-box.done { background: var(--accent); border-color: var(--accent); }
+.prose details.md-details { border: 1px solid var(--border); border-radius: 5pt; margin: 8pt 0; padding: 0 9pt 4pt; }
+.prose details.md-details > summary { list-style: none; font-weight: 700; color: var(--accent); padding: 5pt 0 3pt; }
+.prose details.md-details > summary::-webkit-details-marker { display: none; }

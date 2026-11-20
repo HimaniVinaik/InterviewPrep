@@ -66,121 +66,13 @@
     try { localStorage.setItem('pf.theme', t); } catch (e) { }
   });
 
-  /* ---------------- Content loading ---------------- */
-  const cache = {};
-  async function fetchText(path) {
-    if (cache[path]) return cache[path];
-    const res = await fetch(path, { cache: 'no-cache' });
-    if (!res.ok) throw new Error('Failed to load ' + path + ' (' + res.status + ')');
-    const t = await res.text();
-    cache[path] = t;
-    return t;
-  }
-
-  const TREE_IDS = M.patterns.levels.flat();
-  const EXTRA_IDS = M.patterns.extra || [];          // standalone paths outside the roadmap tree
-  const PATTERN_IDS = TREE_IDS.concat(EXTRA_IDS);
-  let problemsPromise = null;
-  // Parse a pattern markdown file into { intro, problems[] }
-  function parsePattern(id, text) {
-    const chunks = text.replace(/\r\n?/g, '\n').split(/\n(?=## )/);
-    let intro = chunks.shift().replace(/^# .*\n/, '').trim();
-    const problems = chunks.map((chunk, idx) => {
-      const lines = chunk.split('\n');
-      const title = lines.shift().replace(/^##\s+/, '').trim();
-      const meta = {};
-      while (lines.length && /^\s*-\s*\w+\s*:/.test(lines[0])) {
-        const m = lines.shift().match(/^\s*-\s*(\w+)\s*:\s*(.*)$/);
-        meta[m[1].toLowerCase()] = m[2].trim();
-      }
-      const body = lines.join('\n');
-      const parts = body.split(/\n(?=### )/);
-      const prompt = parts.shift().trim();
-      const sec = {};
-      parts.forEach(p => {
-        const nl = p.indexOf('\n');
-        const name = p.slice(4, nl < 0 ? undefined : nl).trim().toLowerCase();
-        sec[name] = nl < 0 ? '' : p.slice(nl + 1).trim();
-      });
-      const slug = meta.slug || MD.slugify(title);
-      return {
-        key: id + '/' + slug, slug, title, pattern: id, idx,
-        difficulty: meta.difficulty || 'Medium',
-        lc: meta.leetcode || '',
-        url: meta.url || (meta.leetcode && meta.leetcode !== '-' ? 'https://leetcode.com/problems/' + slug + '/' : ''),
-        prompt, hint: sec.hint || '', solution: sec.solution || '', explanation: sec.explanation || '',
-        c: sec['c version'] || '',
-      };
-    });
-    return { id, intro, problems };
-  }
-  // Companion file <pattern>.more.md: "## <slug>" blocks with "### Approach N: Name" and "### Walkthrough" sections
-  function mergeMore(pat, text) {
-    const bySlug = {};
-    pat.problems.forEach(p => { bySlug[p.slug] = p; p.approaches = p.approaches || []; p.walkthrough = p.walkthrough || ''; p.complexity = p.complexity || ''; });
-    text.replace(/\r\n?/g, '\n').split(/\n(?=## )/).forEach(chunk => {
-      if (!chunk.startsWith('## ')) return;
-      const nl = chunk.indexOf('\n');
-      const p = bySlug[chunk.slice(3, nl < 0 ? undefined : nl).trim()];
-      if (!p || nl < 0) return;
-      chunk.slice(nl + 1).split(/\n(?=### )/).forEach(sec => {
-        if (!sec.startsWith('### ')) return;
-        const e = sec.indexOf('\n');
-        const name = sec.slice(4, e < 0 ? undefined : e).trim();
-        const body = e < 0 ? '' : sec.slice(e + 1).trim();
-        if (/^approach/i.test(name)) p.approaches.push({ name: name.replace(/^approach\s*\d*\s*[:.-]?\s*/i, ''), body });
-        else if (/^walkthrough/i.test(name)) p.walkthrough = body;
-        else if (/^complexity/i.test(name)) p.complexity = body;
-      });
-    });
-    return pat;
-  }
-  // Companion file <pattern>.solutions.md: "## <slug>" blocks with "### Approach N: Name" and "### Optimal: Name".
-  // When present, these replace the approaches from .more.md and the base solution/explanation.
-  function mergeSolutions(pat, text) {
-    const bySlug = {};
-    pat.problems.forEach(p => { bySlug[p.slug] = p; });
-    text.replace(/\r\n?/g, '\n').split(/\n(?=## )/).forEach(chunk => {
-      if (!chunk.startsWith('## ')) return;
-      const nl = chunk.indexOf('\n');
-      const p = bySlug[chunk.slice(3, nl < 0 ? undefined : nl).trim()];
-      if (!p || nl < 0) return;
-      const approaches = [];
-      let optimal = null;
-      chunk.slice(nl + 1).split(/\n(?=### )/).forEach(sec => {
-        if (!sec.startsWith('### ')) return;
-        const e = sec.indexOf('\n');
-        const name = sec.slice(4, e < 0 ? undefined : e).trim();
-        const body = e < 0 ? '' : sec.slice(e + 1).trim();
-        if (/^approach/i.test(name)) approaches.push({ name: name.replace(/^approach\s*\d*\s*[:.-]?\s*/i, ''), body });
-        else if (/^optimal/i.test(name)) optimal = { name: name.replace(/^optimal\s*[:.-]?\s*/i, '') || 'Optimal', body };
-      });
-      if (approaches.length || optimal) { p.approaches = approaches; if (optimal) p.optimal = optimal; }
-    });
-    return pat;
-  }
-  function loadProblems() {
-    if (!problemsPromise) {
-      problemsPromise = Promise.all(PATTERN_IDS.map(id =>
-        fetchText('content/problems/' + id + '.md').then(t => parsePattern(id, t))
-          .then(pat => fetchText('content/problems/' + id + '.more.md').then(t => mergeMore(pat, t), () => pat))
-          .then(pat => fetchText('content/problems/' + id + '.complexity.md').then(t => mergeMore(pat, t), () => pat))
-          .then(pat => fetchText('content/problems/' + id + '.solutions.md').then(t => mergeSolutions(pat, t), () => pat))
-          .catch(e => ({ id, intro: '⚠️ ' + e.message, problems: [] }))
-      )).then(list => { const o = {}; list.forEach(p => { o[p.id] = p; }); return o; });
-    }
-    return problemsPromise;
-  }
+  /* ---------------- Content loading (shared with the PDF export: js/content.js) ---------------- */
+  const { fetchText, loadProblems, answerTabs, allArticles, TREE_IDS, EXTRA_IDS, PATTERN_IDS } = window.PFContent;
 
   /* ---------------- Helpers ---------------- */
   function bar(done, total) {
     const pct = total ? Math.round(done / total * 100) : 0;
     return `<div class="bar-row"><div class="bar"><span style="width:${pct}%"></span></div><span>${done}/${total}</span></div>`;
-  }
-  function allArticles() {
-    const out = [];
-    for (const [sec, S] of Object.entries(M.sections)) for (const g of S.groups) for (const it of g.items) out.push({ ...it, section: sec, group: g.name });
-    return out;
   }
   function toast(msg) {
     const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
@@ -190,7 +82,65 @@
     return MD.render(text, { toc });
   }
   function footer() {
-    return `<footer class="site-foot">PrepForge · progress is saved in this browser · <a href="#/notes">My notes</a> · <a href="#/" data-action="export">Export progress &amp; notes</a> · <a href="#/" data-action="import">Import</a></footer>`;
+    return `<footer class="site-foot">PrepForge · progress is saved in this browser · <a href="#/export">⬇ Export data (PDF)</a> · <a href="#/notes">My notes</a> · <a href="#/" data-action="export">Export progress &amp; notes</a> · <a href="#/" data-action="import">Import</a></footer>`;
+  }
+
+  /* ---------------- Export data (PDF downloads, built by tools/build-pdf.js) ---------------- */
+  const isAppleTouch = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+  const SECTION_DESC = {
+    all: 'Every problem with all its solutions, plus every Docs, Design, Math, Learn and Courses guide — one book.',
+    problems: 'All patterns and problems: hints, every approach with code, walkthroughs and complexity analysis.',
+    docs: 'The in-depth C/C++ guides.', design: 'Design patterns, LLD and HLD.', math: 'The math guides.',
+    learn: 'Algorithms, data structures, embedded, OS, CUDA, Python, AI and more.', courses: 'The AI & Machine Learning course, all levels.',
+  };
+  async function viewExport() {
+    app.innerHTML = '<div class="loading">Loading downloads…</div>';
+    let data = null, err = '';
+    try {
+      data = JSON.parse(await fetchText('export/manifest.json'));
+      if (!data || !Array.isArray(data.files) || !data.files.length) throw new Error('no files listed');
+    } catch (e) { err = e.message; }
+    if (!/^#\/export\/?$/.test(location.hash.split('?')[0])) return;    // navigated away while loading
+    const apple = isAppleTouch();
+    const dl = f => {
+      const name = 'PrepForge - ' + f.title.replace(/[\/\\:*?"<>|]+/g, '-') + '.pdf';
+      const href = f.file + '?v=' + encodeURIComponent(f.hash || '');
+      return `<div class="btn-row" style="margin-top:12px">
+          <a class="btn ${f.part === 'all' ? 'btn-primary' : 'btn-sm'}" href="${esc(href)}" download="${esc(name)}" data-pdf="${esc(f.part)}">⬇ Download PDF</a>
+          <a class="btn ${f.part === 'all' ? '' : 'btn-sm'}" href="${esc(href)}" target="_blank" rel="noopener">Open</a>
+        </div>`;
+    };
+    const meta = f => `<span class="faint">${f.pages.toLocaleString()} pages · ${fmtSize(f.bytes)}</span>`;
+    const main = data && data.files.find(f => f.part === 'all');
+    const rest = data ? data.files.filter(f => f.part !== 'all') : [];
+    const howApple = `<ol><li>Tap <strong>Download PDF</strong>, then <strong>Download</strong> when Safari asks.</li>
+        <li>The file is saved to the <strong>Files</strong> app › <strong>Downloads</strong> (Safari's ⬇ button in the address bar opens it too).</li>
+        <li>Or tap <strong>Open</strong>, then the <strong>Share</strong> button › <strong>Save to Files</strong> or <strong>Books</strong> to keep it in Apple Books.</li></ol>`;
+    const howDesktop = `<ol><li>Click <strong>Download PDF</strong> — it goes to your Downloads folder.</li>
+        <li>Open it in any PDF reader. Use the reader's <strong>bookmarks / outline</strong> sidebar, or the clickable contents pages, to jump to any topic.</li></ol>`;
+    app.innerHTML = `
+      <div class="page-head"><h1>Export data</h1>
+        <p>Download everything on PrepForge as a nicely formatted PDF book — problems, all solutions and code, docs, design, math, learn and courses — to read offline on your iPhone, iPad or computer.</p></div>
+      ${err ? `<div class="card" style="margin-bottom:16px"><strong>The PDF downloads couldn't be loaded</strong> (${esc(err)}). Check your connection and <a href="#/export">try again</a>.</div>` : ''}
+      ${main ? `<div class="card export-main">
+          <h2 style="margin:0 0 4px">📘 Everything — the complete book</h2>
+          <p class="muted" style="margin:0 0 4px">${esc(SECTION_DESC.all)}</p>${meta(main)}${dl(main)}
+        </div>` : ''}
+      ${rest.length ? `<h2 class="section-title">Or download one section</h2>
+        <div class="grid grid-2">${rest.map(f => `<div class="card"><h3 style="margin:0 0 4px">${esc(f.title)}</h3>
+          <p class="muted" style="margin:0 0 4px;font-size:14.5px">${esc(SECTION_DESC[f.part] || '')}</p>${meta(f)}${dl(f)}</div>`).join('')}</div>` : ''}
+      <h2 class="section-title">How to save it</h2>
+      <div class="grid grid-2">
+        <div class="card prose ${apple ? 'export-here' : ''}"><h3 style="margin-top:0">📱 iPhone &amp; iPad${apple ? ' <span class="tag ok">This device</span>' : ''}</h3>${howApple}</div>
+        <div class="card prose ${apple ? '' : 'export-here'}"><h3 style="margin-top:0">💻 Computer${apple ? '' : ' <span class="tag ok">This device</span>'}</h3>${howDesktop}</div>
+      </div>
+      <div class="card prose" style="margin-top:16px;font-size:15px">
+        <p style="margin:0">Each book has a cover, clickable contents with page numbers, and bookmarks for every part, chapter and problem. Pages are sized 6 × 9 in, so text is readable on a phone without zooming.
+        ${data && data.generated ? ` These PDFs were generated on <strong>${esc(new Date(data.generated).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }))}</strong> and are rebuilt automatically whenever the site's content changes.` : ''}</p>
+        <p style="margin:10px 0 0">Your personal progress and notes live only in this browser, so they aren't in the PDF — <a href="#/" data-action="export">export them separately</a> (and <a href="#/" data-action="import">import</a> on another device).</p>
+      </div>
+      ${footer()}`;
   }
 
   /* ---------------- Views ---------------- */
@@ -224,6 +174,7 @@
           <a class="btn" href="#/problems">View roadmap</a>
           <a class="btn" href="#/mock">${ICON.timer} Mock interview</a>
           <button class="btn" data-action="random">${ICON.shuffle} Random problem</button>
+          <a class="btn" href="#/export">⬇ Export data (PDF)</a>
         </div>
       </section>
       <div class="stats">
@@ -404,9 +355,10 @@
     });
     if (p.hint) $('#hintBtn').addEventListener('click', () => { $('#hintBox').innerHTML = `<div class="prose">${renderMd(p.hint)}</div>`; });
     $('#showAns').addEventListener('click', () => {
-      const tabs = (p.approaches || []).map(a => ({ name: a.name, html: renderMd(a.body) }));
-      if (p.optimal) tabs.push({ name: 'Optimal: ' + p.optimal.name, html: renderMd(p.optimal.body), optimal: true });
-      else tabs.push({ name: 'Optimal' + (tabs.length ? '' : ' solution'), html: renderMd(p.solution) + (p.c ? '<h3>C version</h3>' + renderMd(p.c) : '') + '<h3>Explanation</h3>' + renderMd(p.explanation), optimal: true });
+      const tabs = answerTabs(p).map(t => ({
+        name: t.name, optimal: t.optimal,
+        html: renderMd(t.md) + (t.c ? '<h3>C version</h3>' + renderMd(t.c) : '') + (t.explanation !== undefined ? '<h3>Explanation</h3>' + renderMd(t.explanation) : ''),
+      }));
       const last = tabs.length - 1;
       $('#answerPanel').innerHTML = `<h2>${tabs.length > 1 ? 'Approaches (' + tabs.length + ')' : 'Solution'}</h2>
         ${tabs.length > 1 ? `<div class="seg approach-tabs" role="tablist">${tabs.map((t, i) => `<button role="tab" class="${i === last ? 'on' : ''}" data-tab="${i}">${i + 1}. ${esc(t.name)}${t.optimal ? ' ★' : ''}</button>`).join('')}</div>` : ''}
@@ -787,6 +739,7 @@
         else if (!parts[2]) await viewPattern(parts[1]);
         else await viewProblem(parts[1], parts[2]);
       } else if (top === 'notes') { markNav('problems'); await viewNotes();
+      } else if (top === 'export') { await viewExport();
       } else if (top === 'mock') { await viewMock();
       } else if (M.sections[top]) {
         if (!parts[1]) viewSection(top); else await viewArticle(top, parts[1]);
